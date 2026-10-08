@@ -1,21 +1,42 @@
 schema: https://deg.dev/template-profile/v2
 id: wechat
-name: 测试
+name: 微信支付账单
+reader:
+    format: xlsx
+    stripTabs: true
+shape:
+    - locateHeader: { anchor: [交易时间, 交易对方, 金额(元)], scanRows: 60 }
 template:
-  fileFormat: xlsx
-  delimiter: ','
-  stripTabs: true
-  skipLeadingRows: 17
-  sourceHeaders:
-    - 交易时间
-    - 交易类型
-    - 交易对方
-    - 商品
-    - 收/支
-    - 金额(元)
-    - 支付方式
-    - 当前状态
-    - 交易单号
-    - 商户单号
-    - 备注
-  defaultCurrency: CNY
+    sourceHeaders:
+        - 交易时间
+        - 交易类型
+        - 交易对方
+        - 商品
+        - 收/支
+        - 金额(元)
+        - 支付方式
+        - 当前状态
+        - 交易单号
+        - 商户单号
+        - 备注
+    defaultCurrency: CNY
+    slots:
+        date: <交易时间>
+        payee: <交易对方>
+        narration: <商品>
+        amount: <金额(元)>.number
+        currency: CNY
+        metadata:
+            merchantId: <商户单号>
+            method: <支付方式>
+            orderId: <交易单号>
+            payTime: <交易时间> +0800 CST
+            source: 微信支付
+            status: <当前状态>
+            txType: <交易类型>
+            type: <收/支>
+    # 「/」是转账、提现、充值这类自有资金流动，按支出方向记（from 零钱 → to 目标账户）。
+    direction:
+        column: <收/支>
+        outflow: [支出, /]
+        inflow: [收入]

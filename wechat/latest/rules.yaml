@@ -1,38 +1,17 @@
-templateRules:
-  - id: 基础交易
-    actions:
-      date: <交易时间>
-      amount: <金额(元)>.number
-      payee: <交易对方>
-      narration: <商品>
-      type: <收/支>
-      currency: CNY
-      metadata:
-        merchantId: <商户单号>
-        method: <支付方式>
-        orderId: <交易单号>
-        payTime: <交易时间> +0800 CST
-        source: 微信支付
-        status: <当前状态>
-        txType: <交易类型>
-        type: <收/支>
+options:
+  title: 测试
+  operatingCurrency: CNY
 
+template: wechat
 
-personalRules:
+# 角色绑定：没写到的一侧由引擎补 Assets:FIXME / Expenses:FIXME / Income:FIXME。
+accounts: {}
+
+rules:
   - id: 默认收入
     when: <收/支> == 收入
     actions:
       from: Income:Wechat:RedPacket
-      to: Assets:FIXME
-      amount: <金额(元)>.number
-      currency: CNY
-  - id: 默认支出
-    when: <收/支> != 收入
-    actions:
-      from: Assets:FIXME
-      to: Expenses:FIXME
-      amount: <金额(元)>.number
-      currency: CNY
 
   - id: 红包
     when: narration ~ / && <收/支> ~ 收入 && <支付方式> ~ /
