@@ -93,3 +93,21 @@ test('accounts bind and unbind roles without touching the rest of the file', () 
   assert.deepEqual(readAccounts('personalRules: []\n'), {});
   assert.deepEqual(readAccounts(editAccount('personalRules: []\n', 'self', 'Assets:X')), { self: 'Assets:X' });
 });
+
+import { readPreferences, writePreferences, upsertRuleById, PREF_DROP_ID } from '../src/rules-edit.mjs';
+
+test('output preferences round-trip through managed rules', () => {
+  const src = 'accounts: {self: Assets:A}\npersonalRules:\n  - id: mine\n    when: payee ~ x\n    actions: {to: Expenses:X}\n';
+  let out = writePreferences(src, { dropped: ['orderId', 'merchantId'], narration: '<商品>', payee: '' });
+  assert.deepEqual(readPreferences(out), { dropped: ['orderId', 'merchantId'], narration: '<商品>', payee: '' });
+  const rules = parse(out).personalRules;
+  assert.equal(rules[0].id, 'mine', 'user rules stay first');
+  assert.equal(rules[1].id, PREF_DROP_ID);
+  assert.deepEqual(rules[1].actions.metadataDrop, ['orderId', 'merchantId']);
+  out = writePreferences(out, { dropped: ['orderId'], narration: '', payee: 'Bank' });
+  assert.deepEqual(readPreferences(out), { dropped: ['orderId'], narration: '', payee: 'Bank' });
+  out = writePreferences(out, { dropped: [], narration: '', payee: '' });
+  assert.deepEqual(readPreferences(out), { dropped: [], narration: '', payee: '' });
+  assert.equal(parse(out).personalRules.length, 1);
+  assert.equal(parse(upsertRuleById('personalRules: []\n', 'x', { actions: { ignore: true } })).personalRules[0].actions.ignore, true);
+});

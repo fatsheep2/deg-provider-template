@@ -3,11 +3,11 @@ import { computed, ref, watch } from 'vue';
 import { parse, stringify } from 'yaml';
 import { highlightYaml } from './yaml-highlight.mjs';
 import { ruleCard } from './rules-view.mjs';
-import { readRules, editRule, addRule, removeRule, toCards, readAccounts, editAccount } from './rules-edit.mjs';
+import { readRules, editRule, addRule, removeRule, toCards, readAccounts, editAccount, readPreferences, writePreferences } from './rules-edit.mjs';
 import { roleExample } from './mapping-view.mjs';
 import RuleCard from './RuleCard.vue';
 
-const props = defineProps({ provider: Object, starter: String, roles: { type: Array, default: () => [] }, t: Function });
+const props = defineProps({ provider: Object, starter: String, roles: { type: Array, default: () => [] }, metadataKeys: { type: Array, default: () => [] }, slots: { type: Array, default: () => [] }, t: Function });
 const emit = defineEmits(['change']);
 
 const yaml = ref('');
@@ -75,6 +75,30 @@ function bind(role, value) {
   }
 }
 const roleText = (role) => props.t(role.startsWith('x-') ? 'role_custom' : 'role_' + role);
+// Output preferences: which metadata keys to keep, and an optional narration /
+// payee of the user's own. Stored as two managed rules at the end of the file.
+const prefs = computed(() => {
+  try {
+    return readPreferences(yaml.value);
+  } catch {
+    return { dropped: [], narration: '', payee: '' };
+  }
+});
+const slotExpr = (field) => props.slots.find((s) => s.field === field)?.expr || '';
+function setPrefs(patch) {
+  try {
+    yaml.value = writePreferences(yaml.value, { ...prefs.value, ...patch });
+    status.value = 'valid';
+  } catch {
+    status.value = 'invalid';
+  }
+}
+function toggleKey(key, keep) {
+  const dropped = new Set(prefs.value.dropped);
+  if (keep) dropped.delete(key);
+  else dropped.add(key);
+  setPrefs({ dropped: [...dropped] });
+}
 watch(
   () => props.provider.id,
   () => {
@@ -230,6 +254,25 @@ function reset() {
           <label :for="'acct-' + role"><span class="chip chip-role">{{ role }}</span><span class="acct-desc">{{ roleText(role) }}</span></label>
           <input :id="'acct-' + role" :value="accounts[role] || ''" :placeholder="roleExample(role)" spellcheck="false" @change="bind(role, $event.target.value)">
         </div>
+      </section>
+      <section class="acct-form pref-form">
+        <h3>{{ t('prefTitle') }}</h3>
+        <p class="muted">{{ t('prefNote') }}</p>
+        <div class="pref-row">
+          <label for="pref-payee">{{ t('slot_payee') }}<small class="muted">{{ t('prefDefault') }} <code>{{ slotExpr('payee') || '—' }}</code></small></label>
+          <input id="pref-payee" :value="prefs.payee" :placeholder="slotExpr('payee')" spellcheck="false" @change="setPrefs({ payee: $event.target.value })">
+        </div>
+        <div class="pref-row">
+          <label for="pref-narration">{{ t('slot_narration') }}<small class="muted">{{ t('prefDefault') }} <code>{{ slotExpr('narration') || '—' }}</code></small></label>
+          <input id="pref-narration" :value="prefs.narration" :placeholder="slotExpr('narration')" spellcheck="false" @change="setPrefs({ narration: $event.target.value })">
+        </div>
+        <p class="muted pref-hint">{{ t('prefExprHint') }}</p>
+        <template v-if="metadataKeys.length">
+          <div class="pref-keys-head">{{ t('prefMetadata') }}</div>
+          <div class="pref-keys">
+            <label v-for="k in metadataKeys" :key="k" class="pref-key"><input type="checkbox" :checked="!prefs.dropped.includes(k)" @change="toggleKey(k, $event.target.checked)"><code>{{ k }}</code></label>
+          </div>
+        </template>
       </section>
       <h3 class="rules-h">{{ t('rulesListTitle') }}</h3>
       <p v-if="!cards.length" class="muted">{{ t('noRules') }}</p>

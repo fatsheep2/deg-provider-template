@@ -241,7 +241,12 @@ export const messages = {
     "statement": "statement template",
     "mappingTitle": "How this template reads your statement",
     "rolesTitle": "Accounts you fill in",
-    "rolesNote": "The template never names accounts. Bind each role once in your rules file (the editor below); an unbound role is written as a FIXME account for you to fix later."
+    "rolesNote": "The template never names accounts. Bind each role once in your rules file (the editor below); an unbound role is written as a FIXME account for you to fix later.",
+    "prefTitle": "Output preferences",
+    "prefNote": "Change how every transaction is written. Saved as two rules at the end of your file; your own rules still run first.",
+    "prefDefault": "template default:",
+    "prefExprHint": "Use <column name> to insert a statement column, e.g. <交易对方>-<商品>. Leave blank to keep the template default.",
+    "prefMetadata": "Metadata to keep on each transaction"
   },
   "zh-CN": {
     "mappingTitle": "这个模板怎么读你的账单",
@@ -485,7 +490,12 @@ export const messages = {
     "runFixme": "笔待补账户",
     "runFixmeLines": "条 FIXME 分录",
     "runFixmeHint": "标 FIXME 的交易还没有绑定账户。在上面补一条规则或绑定角色，再跑一次。",
-    "runOutput": "Beancount 输出"
+    "runOutput": "Beancount 输出",
+    "prefTitle": "输出设置",
+    "prefNote": "改每一笔交易的写法。保存为规则文件末尾的两条规则，你自己的规则仍然先执行。",
+    "prefDefault": "模板默认：",
+    "prefExprHint": "用 <列名> 插入账单里的列，例如 <交易对方>-<商品>。留空则用模板默认值。",
+    "prefMetadata": "每笔交易保留的元数据"
   },
   "zh-TW": {
     "mappingTitle": "這個範本怎麼讀你的帳單",
@@ -729,7 +739,12 @@ export const messages = {
     "runFixme": "筆待補帳戶",
     "runFixmeLines": "條 FIXME 分錄",
     "runFixmeHint": "標 FIXME 的交易還沒有綁定帳戶。在上面補一條規則或綁定角色，再跑一次。",
-    "runOutput": "Beancount 輸出"
+    "runOutput": "Beancount 輸出",
+    "prefTitle": "輸出設定",
+    "prefNote": "改每一筆交易的寫法。儲存為規則檔末尾的兩條規則，你自己的規則仍然先執行。",
+    "prefDefault": "範本預設：",
+    "prefExprHint": "用 <欄名> 插入帳單裡的欄，例如 <交易对方>-<商品>。留空則用範本預設值。",
+    "prefMetadata": "每筆交易保留的中繼資料"
   }
 };
 export const locales = ['en', 'zh-CN', 'zh-TW'];

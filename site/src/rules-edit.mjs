@@ -73,3 +73,52 @@ export function editAccount(text, role, account) {
   else if (doc.hasIn(['accounts', role])) doc.deleteIn(['accounts', role]);
   return doc.toString();
 }
+
+/** Find a rule by id. @returns {{index:number, rule:object}|null} */
+export function findRule(text, id) {
+  const rules = readRules(text);
+  const index = rules.findIndex((r) => r && r.id === id);
+  return index < 0 ? null : { index, rule: rules[index] };
+}
+
+/** Create or replace the rule with this id. `rule` omits `id`; a null rule removes it.
+ *  Managed rules (output preferences) live at the end so they run after the user's own. */
+export function upsertRuleById(text, id, rule) {
+  const doc = parseDocument(String(text ?? ''));
+  if (doc.errors.length) throw new Error('invalidYaml');
+  const list = doc.get('personalRules');
+  const items = list && typeof list.items !== 'undefined' ? list.items : [];
+  const index = items.findIndex((n) => n && typeof n.get === 'function' && n.get('id') === id);
+  if (!rule) {
+    if (index >= 0) doc.deleteIn(['personalRules', index]);
+    return doc.toString();
+  }
+  const value = { id, ...(rule.when ? { when: rule.when } : {}), actions: rule.actions || {} };
+  if (index >= 0) doc.setIn(['personalRules', index], value);
+  else doc.addIn(['personalRules'], value);
+  return doc.toString();
+}
+
+export const PREF_DROP_ID = '输出设置：去掉元数据';
+export const PREF_TEXT_ID = '输出设置：摘要与对手方';
+
+/** Output preferences read back from the managed rules. */
+export function readPreferences(text) {
+  const drop = findRule(text, PREF_DROP_ID)?.rule?.actions?.metadataDrop;
+  const textRule = findRule(text, PREF_TEXT_ID)?.rule?.actions || {};
+  return {
+    dropped: Array.isArray(drop) ? drop.map(String) : [],
+    narration: textRule.narration ? String(textRule.narration) : '',
+    payee: textRule.payee ? String(textRule.payee) : '',
+  };
+}
+
+/** Write output preferences as two managed rules; empty preferences remove them. */
+export function writePreferences(text, prefs) {
+  let out = upsertRuleById(text, PREF_DROP_ID, prefs.dropped && prefs.dropped.length ? { actions: { metadataDrop: [...prefs.dropped] } } : null);
+  const actions = {};
+  if (prefs.narration && prefs.narration.trim()) actions.narration = prefs.narration.trim();
+  if (prefs.payee && prefs.payee.trim()) actions.payee = prefs.payee.trim();
+  out = upsertRuleById(out, PREF_TEXT_ID, Object.keys(actions).length ? { actions } : null);
+  return out;
+}
