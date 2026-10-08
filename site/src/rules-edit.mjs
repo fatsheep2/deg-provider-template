@@ -99,26 +99,35 @@ export function upsertRuleById(text, id, rule) {
   return doc.toString();
 }
 
-export const PREF_DROP_ID = '输出设置：去掉元数据';
-export const PREF_TEXT_ID = '输出设置：摘要与对手方';
-
-/** Output preferences read back from the managed rules. */
+/** Output preferences: the rules file's `output:` block (payee, narration, metadata.drop). */
 export function readPreferences(text) {
-  const drop = findRule(text, PREF_DROP_ID)?.rule?.actions?.metadataDrop;
-  const textRule = findRule(text, PREF_TEXT_ID)?.rule?.actions || {};
+  const doc = parseDocument(String(text ?? ''));
+  if (doc.errors.length) throw new Error('invalidYaml');
+  const out = doc.toJS()?.output;
+  const o = out && typeof out === 'object' ? out : {};
+  const drop = o.metadata && typeof o.metadata === 'object' ? o.metadata.drop : null;
   return {
     dropped: Array.isArray(drop) ? drop.map(String) : [],
-    narration: textRule.narration ? String(textRule.narration) : '',
-    payee: textRule.payee ? String(textRule.payee) : '',
+    narration: o.narration ? String(o.narration) : '',
+    payee: o.payee ? String(o.payee) : '',
   };
 }
 
-/** Write output preferences as two managed rules; empty preferences remove them. */
+/** Write the `output:` block; an empty preference set removes it. Other keys of the file are untouched. */
 export function writePreferences(text, prefs) {
-  let out = upsertRuleById(text, PREF_DROP_ID, prefs.dropped && prefs.dropped.length ? { actions: { metadataDrop: [...prefs.dropped] } } : null);
-  const actions = {};
-  if (prefs.narration && prefs.narration.trim()) actions.narration = prefs.narration.trim();
-  if (prefs.payee && prefs.payee.trim()) actions.payee = prefs.payee.trim();
-  out = upsertRuleById(out, PREF_TEXT_ID, Object.keys(actions).length ? { actions } : null);
-  return out;
+  const doc = parseDocument(String(text ?? ''));
+  if (doc.errors.length) throw new Error('invalidYaml');
+  const narration = (prefs.narration || '').trim();
+  const payee = (prefs.payee || '').trim();
+  const dropped = [...(prefs.dropped || [])];
+  if (!narration && !payee && !dropped.length) {
+    if (doc.has('output')) doc.delete('output');
+    return doc.toString();
+  }
+  const block = {};
+  if (payee) block.payee = payee;
+  if (narration) block.narration = narration;
+  if (dropped.length) block.metadata = { drop: dropped };
+  doc.set('output', block);
+  return doc.toString();
 }

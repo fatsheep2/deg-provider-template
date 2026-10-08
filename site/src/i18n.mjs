@@ -243,7 +243,7 @@ export const messages = {
     "rolesTitle": "Accounts you fill in",
     "rolesNote": "The template never names accounts. Bind each role once in your rules file (the editor below); an unbound role is written as a FIXME account for you to fix later.",
     "prefTitle": "Output preferences",
-    "prefNote": "Change how every transaction is written. Saved as two rules at the end of your file; your own rules still run first.",
+    "prefNote": "The default spelling of every transaction and the metadata to keep. Written as the output: block of your rules file, which the deg CLI reads the same way; your rules can still override single transactions.",
     "prefDefault": "template default:",
     "prefExprHint": "Use <column name> to insert a statement column, e.g. <交易对方>-<商品>. Leave blank to keep the template default.",
     "prefMetadata": "Metadata to keep on each transaction"
@@ -492,7 +492,7 @@ export const messages = {
     "runFixmeHint": "标 FIXME 的交易还没有绑定账户。在上面补一条规则或绑定角色，再跑一次。",
     "runOutput": "Beancount 输出",
     "prefTitle": "输出设置",
-    "prefNote": "改每一笔交易的写法。保存为规则文件末尾的两条规则，你自己的规则仍然先执行。",
+    "prefNote": "每笔交易的默认写法和要保留的元数据。写入规则文件的 output: 块，deg 命令行读的是同一份；个人规则仍可逐笔覆盖。",
     "prefDefault": "模板默认：",
     "prefExprHint": "用 <列名> 插入账单里的列，例如 <交易对方>-<商品>。留空则用模板默认值。",
     "prefMetadata": "每笔交易保留的元数据"
@@ -741,7 +741,7 @@ export const messages = {
     "runFixmeHint": "標 FIXME 的交易還沒有綁定帳戶。在上面補一條規則或綁定角色，再跑一次。",
     "runOutput": "Beancount 輸出",
     "prefTitle": "輸出設定",
-    "prefNote": "改每一筆交易的寫法。儲存為規則檔末尾的兩條規則，你自己的規則仍然先執行。",
+    "prefNote": "每筆交易的預設寫法和要保留的中繼資料。寫入規則檔的 output: 區塊，deg 命令列讀的是同一份；個人規則仍可逐筆覆寫。",
     "prefDefault": "範本預設：",
     "prefExprHint": "用 <欄名> 插入帳單裡的欄，例如 <交易对方>-<商品>。留空則用範本預設值。",
     "prefMetadata": "每筆交易保留的中繼資料"
