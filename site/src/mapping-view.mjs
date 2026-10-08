@@ -5,16 +5,21 @@
 
 const SLOT_FIELDS = ['date', 'payee', 'narration', 'amount', 'currency', 'flag', 'tags', 'links'];
 
+export const CORE_ROLES = ['self', 'from', 'to', 'cash', 'position', 'fee', 'pnl', 'gas', 'custody'];
+
 function asList(v) {
   if (v == null) return [];
   return Array.isArray(v) ? v.map(String) : [String(v)];
 }
 
-/** @returns {{hasSlots:boolean, slots:Array<{field:string, expr:string}>, metadata:Array<{key:string, expr:string}>, direction:object, legs:Array, shape:Array<string>, vars:Array<{name:string, expr:string, when:string}>}} */
+/** @returns {{hasSlots:boolean, slots:Array<{field:string, expr:string}>, metadata:Array<{key:string, expr:string}>, direction:object, legs:Array, shape:Array<string>, vars:Array<{name:string, expr:string, when:string}>, fileFormat:string, anchors:Array<string>}} */
 export function mappingModel(templateDoc) {
   const t = templateDoc?.template || {};
   const slots = t.slots && typeof t.slots === 'object' ? t.slots : null;
-  const model = { hasSlots: !!slots, slots: [], metadata: [], direction: { kind: 'none' }, legs: [], shape: [], vars: [] };
+  const model = {
+    hasSlots: !!slots, slots: [], metadata: [], direction: { kind: 'none' }, legs: [], shape: [], vars: [],
+    fileFormat: String(t.fileFormat || templateDoc?.reader?.format || '').toUpperCase(), anchors: [],
+  };
   if (!slots) return model;
   for (const f of SLOT_FIELDS) {
     if (slots[f] != null && String(slots[f]) !== '') model.slots.push({ field: f, expr: String(slots[f]) });
@@ -52,6 +57,7 @@ export function mappingModel(templateDoc) {
     if (!step || typeof step !== 'object') continue;
     const [op, arg] = Object.entries(step)[0] || [];
     if (!op) continue;
+    if (op === 'locateHeader' && arg && typeof arg === 'object') model.anchors = asList(arg.anchor);
     model.shape.push(typeof arg === 'string' ? `${op}: ${arg}` : `${op}: ${JSON.stringify(arg)}`);
   }
   return model;
@@ -64,7 +70,7 @@ export function accountsModel(rulesDoc) {
   return Object.entries(accounts).map(([role, account]) => ({ role, account: String(account ?? '') }));
 }
 
-/** Roles a template's legs use, plus self/from/to for two-leg templates. */
+/** Roles a template's legs use, plus self for two-leg templates. */
 export function rolesOf(model) {
   const roles = new Set();
   for (const b of model.legs) for (const l of b.legs) if (l.role) roles.add(l.role);
@@ -76,9 +82,9 @@ export function rolesOf(model) {
 export function directionText(direction, t) {
   switch (direction.kind) {
     case 'columns':
-      return t('dirColumns').replace('{out}', direction.outflow).replace('{in}', direction.inflow);
+      return t('dirColumns').replace('{out}', columnName(direction.outflow)).replace('{in}', columnName(direction.inflow));
     case 'column': {
-      let s = t('dirColumn').replace('{col}', direction.column).replace('{out}', direction.outflow.join(' / ') || '—').replace('{in}', direction.inflow.join(' / ') || '—');
+      let s = t('dirColumn').replace('{col}', columnName(direction.column)).replace('{out}', direction.outflow.join(' / ') || '—').replace('{in}', direction.inflow.join(' / ') || '—');
       if (direction.fallback) s += ' · ' + t('dirDefault').replace('{d}', t(direction.fallback === 'outflow' ? 'outflow' : 'inflow'));
       return s;
     }
@@ -86,5 +92,45 @@ export function directionText(direction, t) {
       return t(direction.invert ? 'dirSignInvert' : 'dirSign');
     default:
       return '';
+  }
+}
+
+/** "<交易时间>.time" -> "交易时间" for prose; anything else unchanged. */
+export function columnName(expr) {
+  const m = String(expr ?? '').match(/^<([^>]+)>/);
+  return m ? m[1] : String(expr ?? '');
+}
+
+/** Split an expression into readable tokens: bill columns, variables, methods and literal text.
+ *  @returns {Array<{kind:'column'|'var'|'method'|'text', text:string}>} */
+export function exprTokens(expr) {
+  const out = [];
+  const re = /<var\.([^>]+)>|<([^>]+)>|((?:\.[A-Za-z_]+(?:\((?:"[^"]*"|'[^']*'|[^)])*\))?|\.[+\-!])+)/g;
+  let last = 0;
+  const s = String(expr ?? '');
+  for (let m; (m = re.exec(s)); ) {
+    if (m.index > last) out.push({ kind: 'text', text: s.slice(last, m.index) });
+    if (m[1] != null) out.push({ kind: 'var', text: m[1] });
+    else if (m[2] != null) out.push({ kind: 'column', text: m[2] });
+    else out.push({ kind: 'method', text: m[3] });
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) out.push({ kind: 'text', text: s.slice(last) });
+  return out.filter((tok) => tok.text !== '');
+}
+
+/** Example account for a role, used as the input placeholder. */
+export function roleExample(role) {
+  switch (role) {
+    case 'self': return 'Assets:Bank:MyBank:Checking';
+    case 'from': return 'Assets:Bank:MyBank';
+    case 'to': return 'Expenses:FIXME';
+    case 'cash': return 'Assets:Broker:Cash';
+    case 'position': return 'Assets:Broker:Positions';
+    case 'fee': return 'Expenses:Broker:Commission';
+    case 'pnl': return 'Income:Broker:PnL';
+    case 'gas': return 'Expenses:Crypto:Gas';
+    case 'custody': return 'Assets:Bank:Custody';
+    default: return 'Equity:FIXME';
   }
 }

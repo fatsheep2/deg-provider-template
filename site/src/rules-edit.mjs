@@ -53,3 +53,23 @@ export function removeRule(text, index) {
 export function toCards(text, describe) {
   return readRules(text).map((rule) => ({ ...describe(rule), actionsYaml: actionsToYaml(rule) }));
 }
+
+/** Role bindings from the rules text, as {role: account}. Missing block -> {}. */
+export function readAccounts(text) {
+  const doc = parseDocument(String(text ?? ''));
+  if (doc.errors.length) throw new Error('invalidYaml');
+  const js = doc.toJS();
+  const accounts = js && typeof js === 'object' ? js.accounts : null;
+  if (!accounts || typeof accounts !== 'object') return {};
+  return Object.fromEntries(Object.entries(accounts).map(([k, v]) => [k, String(v ?? '')]));
+}
+
+/** Bind one role. An empty account removes the binding so the engine falls back to FIXME. */
+export function editAccount(text, role, account) {
+  const doc = parseDocument(String(text ?? ''));
+  if (doc.errors.length) throw new Error('invalidYaml');
+  const value = String(account ?? '').trim();
+  if (value) doc.setIn(['accounts', role], value);
+  else if (doc.hasIn(['accounts', role])) doc.deleteIn(['accounts', role]);
+  return doc.toString();
+}

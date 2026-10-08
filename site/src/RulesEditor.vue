@@ -3,10 +3,12 @@ import { computed, ref, watch } from 'vue';
 import { parse, stringify } from 'yaml';
 import { highlightYaml } from './yaml-highlight.mjs';
 import { ruleCard } from './rules-view.mjs';
-import { readRules, editRule, addRule, removeRule, toCards } from './rules-edit.mjs';
+import { readRules, editRule, addRule, removeRule, toCards, readAccounts, editAccount } from './rules-edit.mjs';
+import { roleExample } from './mapping-view.mjs';
 import RuleCard from './RuleCard.vue';
 
-const props = defineProps({ provider: Object, starter: String, t: Function });
+const props = defineProps({ provider: Object, starter: String, roles: { type: Array, default: () => [] }, t: Function });
+const emit = defineEmits(['change']);
 
 const yaml = ref('');
 const status = ref('');
@@ -44,9 +46,35 @@ const filtered = computed(() => {
     .filter(({ card }) => (!q ? true : [card.id, card.when, card.actionsYaml].join(' ').toLowerCase().includes(q)));
 });
 
+// The starter file is the maintainer's recommended rules file: keep it whole
+// (accounts, template pin, options) so what people download works as-is.
 function seed() {
-  return stringify({ personalRules: parse(props.starter)?.personalRules || [] });
+  const doc = parse(props.starter);
+  if (doc && typeof doc === 'object' && Array.isArray(doc.personalRules)) return props.starter;
+  return stringify({ personalRules: doc?.personalRules || [] });
 }
+const accounts = computed(() => {
+  try {
+    return readAccounts(yaml.value);
+  } catch {
+    return {};
+  }
+});
+// Roles to offer: what the template uses, plus anything already bound.
+const roleRows = computed(() => {
+  const seen = new Set(props.roles);
+  for (const r of Object.keys(accounts.value)) seen.add(r);
+  return [...seen];
+});
+function bind(role, value) {
+  try {
+    yaml.value = editAccount(yaml.value, role, value);
+    status.value = 'valid';
+  } catch {
+    status.value = 'invalid';
+  }
+}
+const roleText = (role) => props.t(role.startsWith('x-') ? 'role_custom' : 'role_' + role);
 watch(
   () => props.provider.id,
   () => {
@@ -63,12 +91,13 @@ watch(
 );
 // Autosave raw drafts (even incomplete YAML) so navigation/revision switches never discard edits.
 watch(yaml, () => {
+  emit('change', yaml.value);
   try {
     localStorage.setItem(key.value, yaml.value);
   } catch {
     status.value = 'storageError';
   }
-});
+}, { immediate: true });
 
 function toggle(index) {
   if (openIndex.value === index) {
@@ -194,6 +223,15 @@ function reset() {
     <p role="status" class="muted">{{ t(valid ? 'valid' : 'invalid') }}<span v-if="status"> · {{ t(status) }}</span></p>
 
     <template v-if="view === 'cards'">
+      <section class="acct-form">
+        <h3>{{ t('accountsTitle') }}</h3>
+        <p class="muted">{{ t('accountsNote') }}</p>
+        <div v-for="role in roleRows" :key="role" class="acct-row">
+          <label :for="'acct-' + role"><span class="chip chip-role">{{ role }}</span><span class="acct-desc">{{ roleText(role) }}</span></label>
+          <input :id="'acct-' + role" :value="accounts[role] || ''" :placeholder="roleExample(role)" spellcheck="false" @change="bind(role, $event.target.value)">
+        </div>
+      </section>
+      <h3 class="rules-h">{{ t('rulesListTitle') }}</h3>
       <p v-if="!cards.length" class="muted">{{ t('noRules') }}</p>
       <template v-else>
         <div class="rules-tools">

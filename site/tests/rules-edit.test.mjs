@@ -80,3 +80,16 @@ test('actionsToYaml is the inverse used by the editor cards', () => {
   assert.equal(parse(actionsToYaml(rule)).to, 'Expenses:Food:Dinner');
   assert.equal(actionsToYaml({}), '{}\n');
 });
+
+import { readAccounts, editAccount } from '../src/rules-edit.mjs';
+
+test('accounts bind and unbind roles without touching the rest of the file', () => {
+  const src = '# keep me\ntemplate: abc_debit\naccounts:\n  self: Assets:ABC\npersonalRules: []\n';
+  const bound = editAccount(src, 'fee', 'Expenses:Fee');
+  assert.deepEqual(readAccounts(bound), { self: 'Assets:ABC', fee: 'Expenses:Fee' });
+  assert.match(bound, /# keep me/);
+  const unbound = editAccount(bound, 'self', '  ');
+  assert.deepEqual(readAccounts(unbound), { fee: 'Expenses:Fee' });
+  assert.deepEqual(readAccounts('personalRules: []\n'), {});
+  assert.deepEqual(readAccounts(editAccount('personalRules: []\n', 'self', 'Assets:X')), { self: 'Assets:X' });
+});
