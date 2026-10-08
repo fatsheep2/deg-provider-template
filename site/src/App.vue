@@ -23,7 +23,11 @@ const index=ref(null), issues=ref(null), catalogError=ref(''), route=ref(parseRo
 const query=ref(''), category=ref('all'), format=ref('all');
 const reqName=ref(''), reqFormat=ref('CSV'), reqHeaders=ref(''), reqSample=ref('');
 const resources=ref(null), resourceError=ref(''), notice=ref('');
-const assetUrl=(p)=>`${import.meta.env.BASE_URL}${p}`;
+// Resolve assets against the bundle's own location, not the document URL: hosts that
+// serve the page under a path without a trailing slash (or rewrite the HTML) would
+// otherwise send relative fetches to the wrong directory.
+const assetBase=(()=>{try{return new URL('../',import.meta.url).href;}catch{return import.meta.env.BASE_URL;}})();
+const assetUrl=(p)=>assetBase+p;
 const href=(p,v=p.latest)=>`#/template/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`;
 const buildIssue=(title,platform,fmt,headers,sample)=>repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent([
  '### '+t('issuePlatform'), platform||'', '',
@@ -65,7 +69,8 @@ async function loadResources(){
   const isSheet=bill&&/\.xlsx?$/i.test(bill.path);
   const billSource=isText?bill:(isSheet?bill.preview:null);
   const utf8=new TextDecoder('utf-8',{fatal:true});
-  const [template,rules,expected,billBytes]=await Promise.all([fetchBytes(a.template),fetchBytes(a.rules),a.expected?fetchBytes(a.expected):null,billSource?fetchBytes(billSource):null]);
+  const soft=(x)=>x?fetchBytes(x).catch(()=>null):null;
+  const [template,rules,expected,billBytes]=await Promise.all([fetchBytes(a.template),fetchBytes(a.rules),soft(a.expected),soft(billSource)]);
   const billText=billBytes?(isSheet?utf8:new TextDecoder(r.meta.encoding||'utf-8',{fatal:true})).decode(billBytes):null;
   if(token!==generation)return;
   resources.value={template:utf8.decode(template),rules:utf8.decode(rules),expected:expected?utf8.decode(expected):null,bill:billText,billType:!bill?'noSample':(isText||(isSheet&&billSource))?'text':'excel',billConverted:!!(isSheet&&billSource)};
