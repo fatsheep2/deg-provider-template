@@ -2,12 +2,14 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import RulesEditor from './RulesEditor.vue';
 import RulesCards from './RulesCards.vue';
+import MappingCard from './MappingCard.vue';
 import BillTable from './BillTable.vue';
 import CodeBlock from './CodeBlock.vue';
 import { parse, stringify } from 'yaml';
 import { detectLocale, translate } from './i18n.mjs';
 import { providerName, displayTag, names } from './presentation.mjs';
 import { selectRelease, parseRoute, knownIssueForRelease } from './catalog.mjs';
+import { mappingModel, accountsModel } from './mapping-view.mjs';
 import { buildBundleText, buildShareFiles, shareToMirato } from './share.mjs';
 const repo='https://github.com/deb-sig/deg-provider-template';
 const readSaved=(key)=>{try{return localStorage.getItem(key);}catch{return null;}};
@@ -41,6 +43,9 @@ const release=computed(()=>selection.value.release);
 const knownIssue=computed(()=>release.value?knownIssueForRelease(release.value,issues.value?.records):null);
 const command=computed(()=>{if(!release.value)return '';const id=provider.value.id; const reference=`${id}@${release.value.revision}`;return `double-entry-generator config init ${reference} -o ${id}-rules.yaml\ndouble-entry-generator import ${reference} --rules ${id}-rules.yaml ./your-statement.${release.value.meta.fileFormat.toLowerCase()}`;});
 const rulesDoc=computed(()=>{try{return parse(resources.value?.rules||'')||{};}catch{return {};}});
+const templateDoc=computed(()=>{try{return parse(resources.value?.template||'')||{};}catch{return {};}});
+const mapping=computed(()=>mappingModel(templateDoc.value));
+const accounts=computed(()=>accountsModel(rulesDoc.value));
 const templateRules=computed(()=>Array.isArray(rulesDoc.value.templateRules)?rulesDoc.value.templateRules:[]);
 const templateRulesRaw=computed(()=>templateRules.value.length?stringify({templateRules:templateRules.value}):'');
 const downloads=computed(()=>{if(!release.value)return [];const a=release.value.artifacts;return [{...a.template,label:'template'},{...a.rules,label:'rules'},...a.bills.map(b=>({...b,label:'bill'})),...(a.expected?[{...a.expected,label:'expected'}]:[])];});
@@ -125,7 +130,8 @@ onUnmounted(()=>{controller?.abort();window.removeEventListener('hashchange',nav
 <div class="columns"><div>
 <section class="panel use-panel"><h2>{{t('use')}}</h2><p>{{t('useNote')}}</p><pre>{{command}}</pre><button @click="copy">{{t('copy')}}</button><button v-if="shareAvailable" data-testid="share-mirato" @click="shareMirato">{{t('shareToMirato')}}</button></section>
 <template v-if="resources">
-<RulesCards :title="t('templateRulesTitle')" :rules="templateRules" :raw="templateRulesRaw" :t="t" />
+<MappingCard v-if="mapping.hasSlots" :model="mapping" :accounts="accounts" :t="t" />
+<RulesCards v-if="templateRules.length || !mapping.hasSlots" :title="t('templateRulesTitle')" :rules="templateRules" :raw="templateRulesRaw" :t="t" />
 <details class="panel"><summary>{{t('source')}}</summary><h3>{{t('template')}}</h3><CodeBlock :text="resources.template" lang="text" /><h3>{{t('headers')}}</h3><CodeBlock :text="(release.meta.sourceHeaders||[]).join('\n')" lang="text" /></details>
 <RulesEditor :key="provider.id" :provider="provider" :starter="resources.rules" :t="t" />
 </template>

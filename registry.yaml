@@ -8,8 +8,9 @@ templates:
       - 电商
       - 购物
       - 中国大陆
-    latest: "2026-05-23"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-23"
     path: alipay/latest/template.yaml
     starterRules: alipay/latest/rules.yaml
@@ -23,8 +24,9 @@ templates:
       - 社交
       - 购物
       - 中国大陆
-    latest: "2026-04-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-04-28"
     path: wechat/latest/template.yaml
     starterRules: wechat/latest/rules.yaml
@@ -38,8 +40,9 @@ templates:
       - 区块链
       - 多链
       - OKLink
-    latest: "2026-05-26"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-26"
     path: oklink/latest/template.yaml
     starterRules: oklink/latest/rules.yaml
@@ -52,8 +55,9 @@ templates:
       - 银行
       - 加拿大
       - TD
-    latest: "2026-05-27"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-27"
     path: td/latest/template.yaml
     starterRules: td/latest/rules.yaml
@@ -67,8 +71,9 @@ templates:
       - 加拿大
       - BMO
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: bmo-debit/latest/template.yaml
     starterRules: bmo-debit/latest/rules.yaml
@@ -82,8 +87,9 @@ templates:
       - 加拿大
       - BMO
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: bmo-credit/latest/template.yaml
     starterRules: bmo-credit/latest/rules.yaml
@@ -97,8 +103,9 @@ templates:
       - 中国大陆
       - 招商银行
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: cmb-credit/latest/template.yaml
     starterRules: cmb-credit/latest/rules.yaml
@@ -112,8 +119,9 @@ templates:
       - 中国大陆
       - 招商银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: cmb-debit/latest/template.yaml
     starterRules: cmb-debit/latest/rules.yaml
@@ -127,8 +135,9 @@ templates:
       - 中国大陆
       - 交通银行
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: bocom_credit/latest/template.yaml
     starterRules: bocom_credit/latest/rules.yaml
@@ -142,8 +151,9 @@ templates:
       - 中国大陆
       - 交通银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: bocom_debit/latest/template.yaml
     starterRules: bocom_debit/latest/rules.yaml
@@ -157,8 +167,9 @@ templates:
       - 中国大陆
       - 农业银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: abc_debit/latest/template.yaml
     starterRules: abc_debit/latest/rules.yaml
@@ -172,8 +183,9 @@ templates:
       - 中国大陆
       - 中信银行
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: citic-credit/latest/template.yaml
     starterRules: citic-credit/latest/rules.yaml
@@ -187,8 +199,9 @@ templates:
       - 香港
       - HSBC
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: hsbchk-debit/latest/template.yaml
     starterRules: hsbchk-debit/latest/rules.yaml
@@ -202,8 +215,9 @@ templates:
       - 香港
       - HSBC
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: hsbchk-credit/latest/template.yaml
     starterRules: hsbchk-credit/latest/rules.yaml
@@ -217,8 +231,9 @@ templates:
       - 中国大陆
       - 工商银行
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: icbc-credit/latest/template.yaml
     starterRules: icbc-credit/latest/rules.yaml
@@ -232,8 +247,9 @@ templates:
       - 中国大陆
       - 工商银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: icbc-debit-v1/latest/template.yaml
     starterRules: icbc-debit-v1/latest/rules.yaml
@@ -247,8 +263,9 @@ templates:
       - 中国大陆
       - 工商银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: icbc-debit-v2/latest/template.yaml
     starterRules: icbc-debit-v2/latest/rules.yaml
@@ -262,8 +279,9 @@ templates:
       - 中国大陆
       - 中国银行
       - 信用卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: boc-credit/latest/template.yaml
     starterRules: boc-credit/latest/rules.yaml
@@ -277,8 +295,9 @@ templates:
       - 中国大陆
       - 中国银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: boc-debit/latest/template.yaml
     starterRules: boc-debit/latest/rules.yaml
@@ -291,8 +310,9 @@ templates:
       - 电商
       - 购物
       - 京东
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: jd/latest/template.yaml
     starterRules: jd/latest/rules.yaml
@@ -305,8 +325,9 @@ templates:
       - 生活服务
       - 餐饮
       - 美团
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: mt/latest/template.yaml
     starterRules: mt/latest/rules.yaml
@@ -320,8 +341,9 @@ templates:
       - 中国大陆
       - 浦发银行
       - 借记卡
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: spdb_debit/latest/template.yaml
     starterRules: spdb_debit/latest/rules.yaml
@@ -334,8 +356,9 @@ templates:
       - 银行
       - 中国大陆
       - 建设银行
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: ccb/latest/template.yaml
     starterRules: ccb/latest/rules.yaml
@@ -348,8 +371,9 @@ templates:
       - 加密货币
       - 交易所
       - 火币
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: huobi/latest/template.yaml
     starterRules: huobi/latest/rules.yaml
@@ -362,8 +386,9 @@ templates:
       - 证券
       - 中国大陆
       - 海通证券
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: htsec/latest/template.yaml
     starterRules: htsec/latest/rules.yaml
@@ -376,8 +401,9 @@ templates:
       - 证券
       - 中国大陆
       - 华西证券
-    latest: "2026-05-28"
+    latest: "2026-10-08"
     versions:
+      - "2026-10-08"
       - "2026-05-28"
     path: hxsec/latest/template.yaml
     starterRules: hxsec/latest/rules.yaml

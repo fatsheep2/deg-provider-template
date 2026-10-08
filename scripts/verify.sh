@@ -9,6 +9,8 @@ rm -rf "$TMP_DIR"
 mkdir -p "$TMP_DIR"
 
 export DEG_PROVIDER_REGISTRY="$ROOT/registry.yaml"
+# Bills carry local timestamps; expected output was generated in China time.
+export TZ="${TZ:-Asia/Shanghai}"
 
 verify_pin() {
   local id="$1"
