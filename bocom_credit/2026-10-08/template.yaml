@@ -1,6 +1,9 @@
 schema: https://deg.dev/template-profile/v2
 id: bocom_credit
 name: BOCOM Credit
+shape:
+- failIf: <交易说明>.extract("^[^ ]+") != "消费" && <交易说明>.extract("^[^ ]+") != "刷卡金扣回" && <交易说明>.extract("^[^ ]+") != "分期扣款" && <交易说明>.extract("^[^ ]+") != "自动购汇扣款" && <交易说明>.extract("^[^ ]+") != "退货" && <交易说明>.extract("^[^ ]+") != "信用卡还款" && <交易说明>.extract("^[^ ]+") != "红包还款" && <交易说明>.extract("^[^ ]+") != "刷卡金返还" && <交易说明>.extract("^[^ ]+") != "自动购汇还款"
+  message: 交易说明里出现了模板不认识的交易类型，账单格式可能变了；请在模板仓库报告
 template:
   fileFormat: csv
   delimiter: ','
@@ -15,8 +18,8 @@ template:
     date: <交易日期>
     payee: BOCOM Credit
     narration: <交易说明>
-    amount: <入账币种/金额>.number
-    currency: <入账币种/金额>.extract("^[A-Z]+")
+    amount: <入账币种/金额>.extract("([0-9][0-9,]*\.?[0-9]*)$").number
+    currency: <入账币种/金额>.extract("^[A-Za-z]+")
     metadata:
       recordDate: <记账日期>
       source: 交通银行信用卡
@@ -33,3 +36,4 @@ template:
     - 红包还款
     - 刷卡金返还
     - 自动购汇还款
+  timezone: Asia/Shanghai

@@ -2,8 +2,13 @@ options:
   title: mt
   operatingCurrency: CNY
 template: mt
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts: {}
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 美团收入来源
   when: <收/支> == "收入"
@@ -39,106 +44,56 @@ personalRules:
   actions:
     to:
       account: Liabilities:MT:zwyyy456
-- id: 交通0354支出
-  when: <支付方式> ~ "(0354)" && <收/支> == "支出"
+- id: 交通0354
+  when: <支付方式> ~ "(0354)"
   actions:
-    from:
-      account: Liabilities:CC:BCM:0354
-- id: 交通0354收入
-  when: <支付方式> ~ "(0354)" && <收/支> == "收入"
+    accounts:
+      self: Liabilities:CC:BCM:0354
+- id: 中行1341
+  when: <支付方式> ~ "(1341)"
   actions:
-    to:
-      account: Liabilities:CC:BCM:0354
-- id: 中行1341支出
-  when: <支付方式> ~ "(1341)" && <收/支> == "支出"
+    accounts:
+      self: Liabilities:CC:BoC:1341
+- id: 中行1875
+  when: <支付方式> ~ "(1875)"
   actions:
-    from:
-      account: Liabilities:CC:BoC:1341
-- id: 中行1341收入
-  when: <支付方式> ~ "(1341)" && <收/支> == "收入"
+    accounts:
+      self: Liabilities:CC:BoC:1875
+- id: 北银2189
+  when: <支付方式> ~ "(2189)"
   actions:
-    to:
-      account: Liabilities:CC:BoC:1341
-- id: 中行1875支出
-  when: <支付方式> ~ "(1875)" && <收/支> == "支出"
+    accounts:
+      self: Liabilities:CC:BoNB:2189
+- id: 招行0924
+  when: <支付方式> ~ "(0924)"
   actions:
-    from:
-      account: Liabilities:CC:BoC:1875
-- id: 中行1875收入
-  when: <支付方式> ~ "(1875)" && <收/支> == "收入"
+    accounts:
+      self: Liabilities:CC:CMB:0924
+- id: 民生0073
+  when: <支付方式> ~ "(0073)"
   actions:
-    to:
-      account: Liabilities:CC:BoC:1875
-- id: 北银2189支出
-  when: <支付方式> ~ "(2189)" && <收/支> == "支出"
+    accounts:
+      self: Liabilities:CC:CMBC:0073
+- id: 民生5559
+  when: <支付方式> ~ "(5559)"
   actions:
-    from:
-      account: Liabilities:CC:BoNB:2189
-- id: 北银2189收入
-  when: <支付方式> ~ "(2189)" && <收/支> == "收入"
+    accounts:
+      self: Liabilities:CC:CMBC:5559
+- id: 中行储蓄3147
+  when: <支付方式> ~ "(3147)"
   actions:
-    to:
-      account: Liabilities:CC:BoNB:2189
-- id: 招行0924支出
-  when: <支付方式> ~ "(0924)" && <收/支> == "支出"
+    accounts:
+      self: Assets:DC:BoC:3147
+- id: 美团月付
+  when: <支付方式> ~ "美团月付"
   actions:
-    from:
-      account: Liabilities:CC:CMB:0924
-- id: 招行0924收入
-  when: <支付方式> ~ "(0924)" && <收/支> == "收入"
+    accounts:
+      self: Liabilities:MT:zwyyy456
+- id: 美团余额
+  when: <支付方式> ~ "美团余额"
   actions:
-    to:
-      account: Liabilities:CC:CMB:0924
-- id: 民生0073支出
-  when: <支付方式> ~ "(0073)" && <收/支> == "支出"
-  actions:
-    from:
-      account: Liabilities:CC:CMBC:0073
-- id: 民生0073收入
-  when: <支付方式> ~ "(0073)" && <收/支> == "收入"
-  actions:
-    to:
-      account: Liabilities:CC:CMBC:0073
-- id: 民生5559支出
-  when: <支付方式> ~ "(5559)" && <收/支> == "支出"
-  actions:
-    from:
-      account: Liabilities:CC:CMBC:5559
-- id: 民生5559收入
-  when: <支付方式> ~ "(5559)" && <收/支> == "收入"
-  actions:
-    to:
-      account: Liabilities:CC:CMBC:5559
-- id: 中行储蓄3147支出
-  when: <支付方式> ~ "(3147)" && <收/支> == "支出"
-  actions:
-    from:
-      account: Assets:DC:BoC:3147
-- id: 中行储蓄3147收入
-  when: <支付方式> ~ "(3147)" && <收/支> == "收入"
-  actions:
-    to:
-      account: Assets:DC:BoC:3147
-- id: 美团月付支出
-  when: <支付方式> ~ "美团月付" && <收/支> == "支出"
-  actions:
-    from:
-      account: Liabilities:MT:zwyyy456
-- id: 美团月付收入
-  when: <支付方式> ~ "美团月付" && <收/支> == "收入"
-  actions:
-    to:
-      account: Liabilities:MT:zwyyy456
-- id: 美团余额支出
-  when: <支付方式> ~ "美团余额" && <收/支> == "支出"
-  actions:
-    from:
-      account: Assets:MT:Balance:zwyyy456
-- id: 美团余额收入
-  when: <支付方式> ~ "美团余额" && <收/支> == "收入"
-  actions:
-    to:
-      account: Assets:MT:Balance:zwyyy456
+    accounts:
+      self: Assets:MT:Balance:zwyyy456
 - id: 忽略微信支付
   when: <支付方式> ~ "微信支付"
   actions:

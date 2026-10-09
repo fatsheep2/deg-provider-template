@@ -30,17 +30,6 @@ option "operating_currency" "CNY"
 	Assets:Borrow 1234.56 CNY
 	Assets:Bank:CN:ICBC -1234.56 CNY
 
-2023-04-14 * "ABC公司" ""
-	cardName: "这是卡别名"
-	currency: "人民币"
-	peerAccount: "ABC公司"
-	peerAccountNum: "1234****9876"
-	source: "中国工商银行"
-	txType: "工资"
-	type: "收入"
-	Assets:Bank:CN:ICBC 1234.56 CNY
-	Assets:FIXME -1234.56 CNY
-
 2023-04-14 * "手机银行 王五" ""
 	cardName: "这是卡别名"
 	currency: "人民币"
@@ -51,6 +40,17 @@ option "operating_currency" "CNY"
 	type: "支出"
 	Assets:Borrow 500.00 CNY
 	Assets:Bank:CN:ICBC -500.00 CNY
+
+2023-04-14 * "ABC公司" ""
+	cardName: "这是卡别名"
+	currency: "人民币"
+	peerAccount: "ABC公司"
+	peerAccountNum: "1234****9876"
+	source: "中国工商银行"
+	txType: "工资"
+	type: "收入"
+	Assets:Bank:CN:ICBC 1234.56 CNY
+	Assets:FIXME -1234.56 CNY
 
 2023-04-20 * "银联无卡支付业务((特约)掌上生活还款)" ""
 	cardName: "这是卡别名"

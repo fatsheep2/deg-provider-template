@@ -2,39 +2,17 @@ options:
   title: 测试
   operatingCurrency: CNY
 template: huobi
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   cash: Assets:Huobi:Cash
   position: Assets:Huobi:Positions
   fee: Expenses:Huobi:Commission
   pnl: Income:Huobi:PnL
-# 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
-templateRules:
-- id: 火币买入手续费同币种
-  when: <方向> == "买入" && <手续费>.extract("([A-Za-z][A-Za-z0-9]*)$") == <交易对>.extract("^([^/]+)")
-  actions:
-    postings:
-    - <var.cash> -<成交额>.format("%.8f") <var.base>
-    - <var.position> <数量>.format("%.8f") <var.target> {<价格>.format("%.8f") <var.base>} @@ <成交额>.format("%.8f") <var.base>
-    - <var.cash> -<var.fee>.format("%.8f") <var.target> @ <价格>.format("%.8f") <var.base>
-    - <var.feeExpense> <var.fee>.format("%.8f") <var.feeUnit> @ <价格>.format("%.8f") <var.base>
-- id: 火币买入手续费异币种
-  when: <方向> == "买入" && <手续费>.extract("([A-Za-z][A-Za-z0-9]*)$") != <交易对>.extract("^([^/]+)")
-  actions:
-    postings:
-    - <var.cash> -<成交额>.format("%.8f") <var.base>
-    - <var.position> <数量>.format("%.8f") <var.target> {<价格>.format("%.4f") <var.base>} @@ <成交额>.format("%.8f") <var.base>
-    - <var.position> -<var.fee>.format("%.8f") <var.feeUnit>
-    - <var.feeExpense> <var.fee>.format("%.8f") <var.feeUnit>
-- id: 火币卖出
-  when: <方向> == "卖出"
-  actions:
-    postings:
-    - <var.position> -<数量>.format("%.8f") <var.target> {} @ <价格>.format("%.8f") <var.base>
-    - <var.cash> <成交额>.format("%.8f") <var.base>
-    - <var.cash> -<var.fee>.format("%.8f") <var.feeUnit>
-    - <var.feeExpense> <var.fee>.format("%.8f") <var.feeUnit>
-    - <var.pnl>
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: Rule1 BTC 买入
   when: (narration ~ "BTC/USDT" || narration ~ "BTC1S/USDT") && narration ~ "买入" && payee ~ "币币交易"

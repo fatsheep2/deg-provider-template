@@ -2,7 +2,7 @@ options:
   title: 交通银行借记卡示例
   operatingCurrency: CNY
 template: bocom_debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:DebitCard:BOCOM
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
@@ -13,57 +13,32 @@ templateRules:
     narration: <交易地点> <摘要>
     metadata:
       abstract: <摘要>
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 存款利息收入
-  when: payee ~ "应付个人活期储蓄存款利息" && <借贷> ~ "贷"
+- id: 存款利息
+  when: payee ~ "应付个人活期储蓄存款利息"
   actions:
-    from:
-      account: Income:Interest
-- id: 存款利息支出
-  when: payee ~ "应付个人活期储蓄存款利息" && <借贷> ~ "借"
+    other: Income:Interest
+- id: 信用卡还款
+  when: payee ~ "信用卡还款"
   actions:
-    to:
-      account: Income:Interest
-- id: 信用卡还款收入
-  when: payee ~ "信用卡还款" && <借贷> ~ "贷"
+    other: Equity:Transfers
+- id: 信用卡转账还款
+  when: <交易类型> ~ "信用卡转账还款"
   actions:
-    from:
-      account: Equity:Transfers
-- id: 信用卡还款支出
-  when: payee ~ "信用卡还款" && <借贷> ~ "借"
+    other: Equity:Transfers
+- id: 网上国网
+  when: payee ~ "网上国网"
   actions:
-    to:
-      account: Equity:Transfers
-- id: 信用卡转账还款收入
-  when: <交易类型> ~ "信用卡转账还款" && <借贷> ~ "贷"
+    other: Expenses:Electricity
+- id: 基金申购
+  when: <摘要> ~ "基金理财产品申购"
   actions:
-    from:
-      account: Equity:Transfers
-- id: 信用卡转账还款支出
-  when: <交易类型> ~ "信用卡转账还款" && <借贷> ~ "借"
-  actions:
-    to:
-      account: Equity:Transfers
-- id: 网上国网收入
-  when: payee ~ "网上国网" && <借贷> ~ "贷"
-  actions:
-    from:
-      account: Expenses:Electricity
-- id: 网上国网支出
-  when: payee ~ "网上国网" && <借贷> ~ "借"
-  actions:
-    to:
-      account: Expenses:Electricity
-- id: 基金申购收入
-  when: <摘要> ~ "基金理财产品申购" && <借贷> ~ "贷"
-  actions:
-    from:
-      account: Assets:Funds
-- id: 基金申购支出
-  when: <摘要> ~ "基金理财产品申购" && <借贷> ~ "借"
-  actions:
-    to:
-      account: Assets:Funds
+    other: Assets:Funds
 - id: 忽略财付通
   when: <摘要> ~ "财付通"
   actions:

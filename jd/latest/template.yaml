@@ -46,3 +46,4 @@ template:
     - 不计收支
     inflow:
     - 收入
+  timezone: Asia/Shanghai

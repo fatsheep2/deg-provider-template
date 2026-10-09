@@ -8,6 +8,7 @@ shape:
     - 交易对方
     - 金额
     scanRows: 60
+- dropIf: <交易状态> == "交易关闭" && <收/支> == "不计收支"
 template:
   fileFormat: csv
   encoding: gb18030
@@ -49,3 +50,4 @@ template:
     inflow:
     - 收入
     default: outflow
+  timezone: Asia/Shanghai

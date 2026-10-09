@@ -2,71 +2,40 @@ options:
   title: 测试
   operatingCurrency: CNY
 template: citic-credit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Liabilities:CreditCard:CITIC
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 三快支出
-  when: narration ~ "三快" && <交易金额> >= 0
+- id: 三快
+  when: narration ~ "三快"
   actions:
-    to:
-      account: Expenses:Food
-- id: 三快收入
-  when: narration ~ "三快" && <交易金额> < 0
+    other: Expenses:Food
+- id: 购物
+  when: (narration ~ "电子商务" || narration ~ "天猫" || narration ~ "京东" || narration ~ "特约商户")
   actions:
-    from:
-      account: Expenses:Food
-- id: 购物支出
-  when: (narration ~ "电子商务" || narration ~ "天猫" || narration ~ "京东" || narration ~ "特约商户") && <交易金额> >= 0
+    other: Expenses:Shopping
+- id: 电费
+  when: (narration ~ "电费" || narration ~ "网上国网")
   actions:
-    to:
-      account: Expenses:Shopping
-- id: 购物收入
-  when: (narration ~ "电子商务" || narration ~ "天猫" || narration ~ "京东" || narration ~ "特约商户") && <交易金额> < 0
+    other: Expenses:Electricity
+- id: 交通
+  when: (narration ~ "滴滴出行" || narration ~ "嘀嘀" || narration ~ "中国石油")
   actions:
-    from:
-      account: Expenses:Shopping
-- id: 电费支出
-  when: (narration ~ "电费" || narration ~ "网上国网") && <交易金额> >= 0
+    other: Expenses:Transport
+- id: 现金奖励
+  when: narration ~ "现金奖励"
   actions:
-    to:
-      account: Expenses:Electricity
-- id: 电费收入
-  when: (narration ~ "电费" || narration ~ "网上国网") && <交易金额> < 0
-  actions:
-    from:
-      account: Expenses:Electricity
-- id: 交通支出
-  when: (narration ~ "滴滴出行" || narration ~ "嘀嘀" || narration ~ "中国石油") && <交易金额> >= 0
-  actions:
-    to:
-      account: Expenses:Transport
-- id: 交通收入
-  when: (narration ~ "滴滴出行" || narration ~ "嘀嘀" || narration ~ "中国石油") && <交易金额> < 0
-  actions:
-    from:
-      account: Expenses:Transport
-- id: 现金奖励支出
-  when: narration ~ "现金奖励" && <交易金额> >= 0
-  actions:
-    to:
-      account: Income:Rewards
-- id: 现金奖励收入
-  when: narration ~ "现金奖励" && <交易金额> < 0
-  actions:
-    from:
-      account: Income:Rewards
+    other: Income:Rewards
 - id: 忽略云闪付财付通
   when: narration ~ "财付通(银联云闪付)"
   actions:
     ignore: true
-- id: 财付通还款支出
-  when: narration ~ "财付通还款" && <交易金额> >= 0
+- id: 财付通还款
+  when: narration ~ "财付通还款"
   actions:
-    to:
-      account: Assets:WeChat
-- id: 财付通还款收入
-  when: narration ~ "财付通还款" && <交易金额> < 0
-  actions:
-    from:
-      account: Assets:WeChat
+    other: Assets:WeChat

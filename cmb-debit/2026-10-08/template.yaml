@@ -1,6 +1,13 @@
 schema: https://deg.dev/template-profile/v2
 id: cmb-debit
 name: CMB Debit
+shape:
+- locateHeader:
+    anchor:
+    - 记账日期
+    - 交易金额
+    scanRows: 30
+- dropIf: <记账日期> == ""
 template:
   fileFormat: csv
   delimiter: ','
@@ -20,3 +27,4 @@ template:
     amount: <交易金额>.number
     currency: <货币>
   direction: {}
+  timezone: Asia/Shanghai

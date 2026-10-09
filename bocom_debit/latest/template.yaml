@@ -43,3 +43,5 @@ template:
     - 借
     inflow:
     - 贷
+    default: outflow
+  timezone: Asia/Shanghai

@@ -2,11 +2,19 @@ options:
   title: 测试
   operatingCurrency: CNY
 template: icbc-credit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Liabilities:Bank:CN:ICBC
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
 templateRules:
+- id: 工行信用卡对手方
+  when: <交易场所> == ""
+  actions:
+    payee: <对方户名>
+- id: 工行信用卡组合对手方
+  when: <交易场所> != "" && <对方户名> != ""
+  actions:
+    payee: <交易场所> <对方户名>
 - id: 工行信用卡收入
   when: <记账金额(收入)> != "" && <记账金额(收入)> != "-"
   actions:
@@ -17,6 +25,11 @@ templateRules:
   actions:
     metadata:
       type: 支出
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 忽略财付通支付宝
   when: payee ~ "财付通" || payee ~ "支付宝"

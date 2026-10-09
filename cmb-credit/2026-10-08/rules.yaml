@@ -2,54 +2,27 @@ options:
   title: 测试
   operatingCurrency: CNY
 template: cmb-credit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Liabilities:CreditCard:CMB
-# 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
-templateRules:
-- id: 招商信用卡交易日优先
-  when: <交易日> != ""
-  actions:
-    date: 2024/<交易日>
-- id: 招商信用卡记账日跨年
-  when: <交易日> == "" && <记账日> >= 12/01
-  actions:
-    date: 2023/<记账日>
-- id: 招商信用卡交易日跨年
-  when: <交易日> >= 12/01
-  actions:
-    date: 2023/<交易日>
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 掌上生活影票支出
-  when: narration ~ "掌上生活影票" && <人民币金额> >= 0
+- id: 掌上生活影票
+  when: narration ~ "掌上生活影票"
   actions:
-    to:
-      account: Expenses:Movie
-- id: 掌上生活影票收入
-  when: narration ~ "掌上生活影票" && <人民币金额> < 0
+    other: Expenses:Movie
+- id: 手机银行饭票
+  when: narration ~ "手机银行饭票"
   actions:
-    from:
-      account: Expenses:Movie
-- id: 手机银行饭票支出
-  when: narration ~ "手机银行饭票" && <人民币金额> >= 0
+    other: Expenses:Food
+- id: 中国移动
+  when: narration ~ "中国移动"
   actions:
-    to:
-      account: Expenses:Food
-- id: 手机银行饭票收入
-  when: narration ~ "手机银行饭票" && <人民币金额> < 0
-  actions:
-    from:
-      account: Expenses:Food
-- id: 中国移动支出
-  when: narration ~ "中国移动" && <人民币金额> >= 0
-  actions:
-    to:
-      account: Expenses:Mobile
-- id: 中国移动收入
-  when: narration ~ "中国移动" && <人民币金额> < 0
-  actions:
-    from:
-      account: Expenses:Mobile
+    other: Expenses:Mobile
 - id: 忽略财付通
   when: narration ~ "财付通"
   actions:

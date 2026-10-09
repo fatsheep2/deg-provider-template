@@ -40,5 +40,8 @@ template:
     column: <收/支>
     outflow:
     - 支出
+    - 不计收支
     inflow:
     - 收入
+    default: outflow
+  timezone: Asia/Shanghai

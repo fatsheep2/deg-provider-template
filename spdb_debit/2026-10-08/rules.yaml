@@ -2,11 +2,19 @@ options:
   title: 浦发银行借记卡配置
   operatingCurrency: CNY
 template: spdb_debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:DebitCard:SPB1234
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
 templateRules:
+- id: 浦发无对手名
+  when: <交易对手名称> == ""
+  actions:
+    payee: SPDB Debit
+- id: 浦发附言并入摘要
+  when: <附言> != ""
+  actions:
+    narration: <交易类型> <附言>
 - id: 浦发支出
   when: <取出金额> != "" && <取出金额> != "0"
   actions:
@@ -17,6 +25,11 @@ templateRules:
   actions:
     metadata:
       amount: <存入金额>.-
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 基金销售支出
   when: payee ~ "基金销售有限公司" && <取出金额> != "" && <取出金额> != "0"

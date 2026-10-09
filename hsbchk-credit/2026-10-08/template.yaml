@@ -36,3 +36,4 @@ template:
     - DEBIT
     inflow:
     - CREDIT
+  timezone: Asia/Hong_Kong

@@ -73,15 +73,6 @@ option "operating_currency" "CNY"
 	Expenses:Food:Delivery 21.80 CNY
 	Liabilities:CreditCard:HSBC -21.80 CNY
 
-2025-04-07 * "MCDONALDS" "SALES:   MCDONALDS                 CHN          CN"
-	country: "CHINA"
-	credit_or_debit: "DEBIT"
-	post_date: "08/04/2025"
-	source: "HSBC HK"
-	status: "POSTED"
-	Expenses:Food:FastFood 27.90 CNY
-	Liabilities:CreditCard:HSBC -27.90 CNY
-
 2025-04-07 * "MCDONALDS" "SALES:   MCDONALDS (HKD)              CHN          CN"
 	country: "CHINA"
 	credit_or_debit: "DEBIT"
@@ -90,6 +81,15 @@ option "operating_currency" "CNY"
 	status: "POSTED"
 	Expenses:Food:FastFood 27.90 HKD
 	Liabilities:CreditCard:HSBC -27.90 HKD
+
+2025-04-07 * "MCDONALDS" "SALES:   MCDONALDS                 CHN          CN"
+	country: "CHINA"
+	credit_or_debit: "DEBIT"
+	post_date: "08/04/2025"
+	source: "HSBC HK"
+	status: "POSTED"
+	Expenses:Food:FastFood 27.90 CNY
+	Liabilities:CreditCard:HSBC -27.90 CNY
 
 2025-04-08 * "YAHUI CATERING CO.,LTD." "QR       YAHUI CATERING CO.,LTD.   CHN          CN"
 	country: "CHINA"

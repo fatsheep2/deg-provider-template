@@ -59,4 +59,6 @@ template:
   legs:   [ { when: <操作> == "买", legs: [ { role: cash, amount: "-<成交金额>" }, … ] } ]
 ```
 
-`rules.yaml` is the user's side: `accounts:` binds roles (`from`, `to`, `cash`, `position`, `fee`, `pnl`, …) to the user's accounts once; `rules:` overrides single transactions. See `htsec/latest` (multi-leg) and `wechat/latest` (two-leg) for complete examples. Older `templateRules` templates still import.
+`rules.yaml` is the user's side: `accounts:` binds roles to the user's accounts once — `self` (the card or wallet the statement belongs to), `other` (the counterparty, which flips side on refunds), and `cash`/`position`/`fee`/`pnl`/… for brokers — and `personalRules:` override single transactions, usually with one `other:` per merchant or category. `output:` sets the default payee/narration and which metadata to keep.
+
+Statement-level values above the table (account number, card alias, statement month) are read with `shape: - capture:` and used as `<file.x>`; `shape: - failIf:` stops the import when a row looks unfamiliar, and `template.timezone` pins wall-clock dates. See the engine's `docs/docs/providers/template.md` for the full syntax and the criteria a new feature must meet before it enters the syntax. See `htsec/latest` (multi-leg) and `wechat/latest` (two-leg) for complete examples. Older `templateRules` templates still import.

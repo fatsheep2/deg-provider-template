@@ -1,10 +1,16 @@
 schema: https://deg.dev/template-profile/v2
 id: boc-credit
 name: BOC Credit
+shape:
+- locateHeader:
+    anchor:
+    - 交易日
+    - 存入
+    - 支出
+    scanRows: 20
 template:
   fileFormat: csv
   delimiter: ','
-  skipLeadingRows: 1
   sourceHeaders:
   - 交易日
   - 银行记账日
@@ -22,3 +28,4 @@ template:
   direction:
     outflowColumn: <支出>
     inflowColumn: <存入>
+  timezone: Asia/Shanghai

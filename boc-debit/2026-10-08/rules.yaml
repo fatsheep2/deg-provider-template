@@ -2,89 +2,52 @@ options:
   title: boc
   operatingCurrency: CNY
 template: boc-debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts: {}
+# 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
+templateRules:
+- id: 中行借记卡外币
+  when: <币别> != "人民币"
+  actions:
+    currency: USD
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 公共交通支出
-  when: narration ~ "公共交通" && <金额> < 0
+- id: 公共交通
+  when: narration ~ "公共交通"
   actions:
-    to:
-      account: Expenses:Transport:Subway
-- id: 公共交通收入
-  when: narration ~ "公共交通" && <金额> >= 0
+    other: Expenses:Transport:Subway
+- id: 游戏
+  when: (narration ~ "xbox" || narration ~ "steam" || narration ~ "游戏" || narration ~ "XBOX")
   actions:
-    from:
-      account: Expenses:Transport:Subway
-- id: 游戏支出
-  when: (narration ~ "xbox" || narration ~ "steam" || narration ~ "游戏" || narration ~ "XBOX") && <金额> < 0
+    other: Expenses:Relax:Game
+- id: 培训
+  when: payee ~ "顾问有限公司"
   actions:
-    to:
-      account: Expenses:Relax:Game
-- id: 游戏收入
-  when: (narration ~ "xbox" || narration ~ "steam" || narration ~ "游戏" || narration ~ "XBOX") && <金额> >= 0
+    other: Expenses:Education:Training
+- id: 房租
+  when: payee ~ "张林"
   actions:
-    from:
-      account: Expenses:Relax:Game
-- id: 培训支出
-  when: payee ~ "顾问有限公司" && <金额> < 0
+    other: Expenses:Reside:Rent
+- id: BCM0258
+  when: (payee ~ "0258" || <对方卡号/账号> ~ "0258")
   actions:
-    to:
-      account: Expenses:Education:Training
-- id: 培训收入
-  when: payee ~ "顾问有限公司" && <金额> >= 0
+    other: Assets:DC:BCM:0258
+- id: CMBC5669
+  when: (payee ~ "5669" || <对方卡号/账号> ~ "5669")
   actions:
-    from:
-      account: Expenses:Education:Training
-- id: 房租支出
-  when: payee ~ "张林" && <金额> < 0
+    other: Liabilities:CC:CMBC:5669
+- id: BCM4664
+  when: (payee ~ "4664" || <对方卡号/账号> ~ "4664")
   actions:
-    to:
-      account: Expenses:Reside:Rent
-- id: 房租收入
-  when: payee ~ "张林" && <金额> >= 0
+    other: Liabilities:CC:BCM:4664
+- id: CMB4294
+  when: (payee ~ "4294" || <对方卡号/账号> ~ "4294")
   actions:
-    from:
-      account: Expenses:Reside:Rent
-- id: BCM0258支出
-  when: (payee ~ "0258" || <对方卡号/账号> ~ "0258") && <金额> < 0
-  actions:
-    to:
-      account: Assets:DC:BCM:0258
-- id: BCM0258收入
-  when: (payee ~ "0258" || <对方卡号/账号> ~ "0258") && <金额> >= 0
-  actions:
-    from:
-      account: Assets:DC:BCM:0258
-- id: CMBC5669支出
-  when: (payee ~ "5669" || <对方卡号/账号> ~ "5669") && <金额> < 0
-  actions:
-    to:
-      account: Liabilities:CC:CMBC:5669
-- id: CMBC5669收入
-  when: (payee ~ "5669" || <对方卡号/账号> ~ "5669") && <金额> >= 0
-  actions:
-    from:
-      account: Liabilities:CC:CMBC:5669
-- id: BCM4664支出
-  when: (payee ~ "4664" || <对方卡号/账号> ~ "4664") && <金额> < 0
-  actions:
-    to:
-      account: Liabilities:CC:BCM:4664
-- id: BCM4664收入
-  when: (payee ~ "4664" || <对方卡号/账号> ~ "4664") && <金额> >= 0
-  actions:
-    from:
-      account: Liabilities:CC:BCM:4664
-- id: CMB4294支出
-  when: (payee ~ "4294" || <对方卡号/账号> ~ "4294") && <金额> < 0
-  actions:
-    to:
-      account: Liabilities:CC:CMB:4294
-- id: CMB4294收入
-  when: (payee ~ "4294" || <对方卡号/账号> ~ "4294") && <金额> >= 0
-  actions:
-    from:
-      account: Liabilities:CC:CMB:4294
+    other: Liabilities:CC:CMB:4294
 - id: 忽略支付平台对手方
   when: payee ~ "支付宝" || <对方卡号/账号> ~ "支付宝" || payee ~ "微信" || <对方卡号/账号> ~ "微信" || payee ~ "钱袋宝" || <对方卡号/账号> ~ "钱袋宝" || payee ~ "京东" || <对方卡号/账号> ~ "京东"
   actions:
@@ -97,36 +60,21 @@ personalRules:
   when: narration ~ "曾三"
   actions:
     ignore: true
-- id: 方法3167支出
-  when: <借记卡号> ~ "3167" && <金额> < 0
+- id: 方法3167
+  when: <借记卡号> ~ "3167"
   actions:
-    from:
-      account: Assets:DC:BoC:3167
-- id: 方法3167收入
-  when: <借记卡号> ~ "3167" && <金额> >= 0
+    accounts:
+      self: Assets:DC:BoC:3167
+- id: 方法2875
+  when: <借记卡号> ~ "2875"
   actions:
-    to:
-      account: Assets:DC:BoC:3167
-- id: 方法2875支出
-  when: <借记卡号> ~ "2875" && <金额> < 0
+    accounts:
+      self: Liabilities:CC:BoC:2875
+- id: 方法4260
+  when: <借记卡号> ~ "4260"
   actions:
-    from:
-      account: Liabilities:CC:BoC:2875
-- id: 方法2875收入
-  when: <借记卡号> ~ "2875" && <金额> >= 0
-  actions:
-    to:
-      account: Liabilities:CC:BoC:2875
-- id: 方法4260支出
-  when: <借记卡号> ~ "4260" && <金额> < 0
-  actions:
-    from:
-      account: Liabilities:CC:BoC:4260
-- id: 方法4260收入
-  when: <借记卡号> ~ "4260" && <金额> >= 0
-  actions:
-    to:
-      account: Liabilities:CC:BoC:4260
+    accounts:
+      self: Liabilities:CC:BoC:4260
 - id: 网银在线返利
   when: narration ~ "网银在线CHN" && <金额> >= 0
   actions:

@@ -81,3 +81,4 @@ template:
       amount: <var.fee>.format("%.8f")
       currency: <var.feeUnit>
     - role: pnl
+  timezone: Asia/Shanghai

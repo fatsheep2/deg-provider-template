@@ -1,10 +1,21 @@
 schema: https://deg.dev/template-profile/v2
 id: ccb
 name: ccb
+shape:
+- capture:
+    pattern: 账[\s\p{Zs}]*号[：:][\s\p{Zs}]*(?P<accountNum>\S+)
+    scanRows: 6
+- locateHeader:
+    anchor:
+    - 记账日
+    - 交易日期
+    - 支出
+    - 收入
+    scanRows: 20
+- dropMatching: 以上数据仅供参考|具体内容请以柜台为准
 template:
   fileFormat: xls
   delimiter: ','
-  skipLeadingRows: 6
   skipInvalidRows: true
   sourceHeaders:
   - 记账日
@@ -25,7 +36,7 @@ template:
     narration: <交易地点>
     currency: CNY
     metadata:
-      accountNum: xxxxx*********xxxx
+      accountNum: <file.accountNum>
       balances: <账户余额>
       currency: <币种>
       expense: ''
@@ -41,3 +52,4 @@ template:
   direction:
     outflowColumn: <支出>
     inflowColumn: <收入>
+  timezone: Asia/Shanghai

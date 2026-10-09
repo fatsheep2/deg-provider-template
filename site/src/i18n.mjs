@@ -246,7 +246,8 @@ export const messages = {
     "prefNote": "The default spelling of every transaction and the metadata to keep. Written as the output: block of your rules file, which the deg CLI reads the same way; your rules can still override single transactions.",
     "prefDefault": "template default:",
     "prefExprHint": "Use <column name> to insert a statement column, e.g. <交易对方>-<商品>. Leave blank to keep the template default.",
-    "prefMetadata": "Metadata to keep on each transaction"
+    "prefMetadata": "Metadata to keep on each transaction",
+    "role_other": "The counterparty: where the money goes on an outflow, where it comes from on an inflow or refund. One rule covers a purchase and its refund."
   },
   "zh-CN": {
     "mappingTitle": "这个模板怎么读你的账单",
@@ -495,7 +496,8 @@ export const messages = {
     "prefNote": "每笔交易的默认写法和要保留的元数据。写入规则文件的 output: 块，deg 命令行读的是同一份；个人规则仍可逐笔覆盖。",
     "prefDefault": "模板默认：",
     "prefExprHint": "用 <列名> 插入账单里的列，例如 <交易对方>-<商品>。留空则用模板默认值。",
-    "prefMetadata": "每笔交易保留的元数据"
+    "prefMetadata": "每笔交易保留的元数据",
+    "role_other": "对手方：支出时钱去的地方，收入或退款时钱来的地方。一条规则同时覆盖消费和它的退款。"
   },
   "zh-TW": {
     "mappingTitle": "這個範本怎麼讀你的帳單",
@@ -744,7 +746,8 @@ export const messages = {
     "prefNote": "每筆交易的預設寫法和要保留的中繼資料。寫入規則檔的 output: 區塊，deg 命令列讀的是同一份；個人規則仍可逐筆覆寫。",
     "prefDefault": "範本預設：",
     "prefExprHint": "用 <欄名> 插入帳單裡的欄，例如 <交易对方>-<商品>。留空則用範本預設值。",
-    "prefMetadata": "每筆交易保留的中繼資料"
+    "prefMetadata": "每筆交易保留的中繼資料",
+    "role_other": "對手方：支出時錢去的地方，收入或退款時錢來的地方。一條規則同時涵蓋消費和它的退款。"
   }
 };
 export const locales = ['en', 'zh-CN', 'zh-TW'];

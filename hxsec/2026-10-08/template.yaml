@@ -1,6 +1,9 @@
 schema: https://deg.dev/template-profile/v2
 id: hxsec
 name: hxsec
+shape:
+- failIf: <txType> != "银行转证券" && <txType> != "证券转银行" && <txType> != "利息归本" && <txType> != "红利入账" && <txType> != "证券买入" && <txType> != "证券卖出" && <txType> != "融券回购" && <txType> != "融券购回" && <txType> != "ETF份额合并" && <txType> != "指定交易"
+  message: 出现了模板不认识的业务名称，请在模板仓库报告
 template:
   fileFormat: xls
   encoding: gb18030
@@ -184,3 +187,4 @@ template:
       amount: <remainingQuantity>.format("%.2f")
       currency: <var.security>
       cost: '{}'
+  timezone: Asia/Shanghai

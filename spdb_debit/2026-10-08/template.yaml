@@ -1,10 +1,17 @@
 schema: https://deg.dev/template-profile/v2
 id: spdb_debit
 name: spdb_debit
+shape:
+- locateHeader:
+    anchor:
+    - 交易日期
+    - 交易类型
+    scanRows: 20
+- dropMatching: 合计
+- dropIf: (<存入金额> == "" || <存入金额> == "0") && (<取出金额> == "" || <取出金额> == "0")
 template:
   fileFormat: xls
   delimiter: ','
-  skipLeadingRows: 1
   sourceHeaders:
   - 顺序号
   - 交易日期
@@ -25,8 +32,10 @@ template:
       account: <交易对手账号>
       amount: ''
       balance: <余额>
+      postscript: <附言>
       source: 浦发银行借记卡
       time: <交易日期>.extract("[0-9]{2}:[0-9]{2}:[0-9]{2}")
   direction:
     outflowColumn: <取出金额>
     inflowColumn: <存入金额>
+  timezone: Asia/Shanghai

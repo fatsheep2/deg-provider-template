@@ -1,10 +1,15 @@
 schema: https://deg.dev/template-profile/v2
 id: boc-debit
 name: BOC Debit
+shape:
+- locateHeader:
+    anchor:
+    - 记账日期
+    - 金额
+    scanRows: 20
 template:
   fileFormat: csv
   delimiter: ','
-  skipLeadingRows: 1
   sourceHeaders:
   - 记账日期
   - 记账时间
@@ -27,3 +32,4 @@ template:
     amount: <金额>.number
     currency: CNY
   direction: {}
+  timezone: Asia/Shanghai

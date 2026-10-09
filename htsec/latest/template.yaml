@@ -2,61 +2,87 @@ schema: https://deg.dev/template-profile/v2
 id: htsec
 name: 海通证券成交明细
 shape:
-    - locateHeader: { anchor: [成交日期, 成交金额, 操作] }
-    # 同一笔成交会拆成「金额行」和「数量价格行」：金额行只有成交金额，数量价格行上再算金额。
-    - dropIf: '<成交金额> != "0" && <成交数量> == "0" && <成交价格> == "0"'
+- locateHeader:
+    anchor:
+    - 成交日期
+    - 成交金额
+    - 操作
+# 同一笔成交会拆成「金额行」和「数量价格行」：丢掉金额行，在数量价格行上用 数量×价格 算金额。
+- dropIf: <成交金额> != "0" && <成交数量> == "0" && <成交价格> == "0"
+- dropIf: <证券名称> == "新增证券"
 template:
-    fileFormat: xlsx
-    sourceHeaders:
-        - 证券代码
-        - 证券名称
-        - 成交日期
-        - 成交时间
-        - 成交数量
-        - 成交价格
-        - 成交金额
-        - 发生金额
-        - 操作
-        - 合同号
-        - 成交号
-        - 手续费
-        - 印花税
-        - 过户费
-        - 其他费
-        - 资金本次余额
-        - 股份本次余额
-        - 股东账号
-        - 资金账号
-    defaultCurrency: CNY
-    slots:
-        date: <成交日期> <成交时间>
-        payee: htsec
-        narration: <操作>-<证券代码>.format("%06.0f")-<证券名称>
-        amount: <成交金额>.number
+  fileFormat: xlsx
+  sourceHeaders:
+  - 证券代码
+  - 证券名称
+  - 成交日期
+  - 成交时间
+  - 成交数量
+  - 成交价格
+  - 成交金额
+  - 发生金额
+  - 操作
+  - 合同号
+  - 成交号
+  - 手续费
+  - 印花税
+  - 过户费
+  - 其他费
+  - 资金本次余额
+  - 股份本次余额
+  - 股东账号
+  - 资金账号
+  defaultCurrency: CNY
+  slots:
+    date: <成交日期> <成交时间>
+    payee: htsec
+    narration: <操作>-<证券代码>.format("%06.0f")-<证券名称>
+    amount: <成交金额>.number
+  vars:
+  - vars:
+      security: SZ<证券代码>.format("%06.0f")
+      amount: <成交金额>.format("%.2f")
+      fee: <手续费>.number + <印花税>.number + <过户费>.number + <其他费>.number
+  - when: <股东账号> ^= "A"
     vars:
-        - vars:
-              security: SZ<证券代码>.format("%06.0f")
-              amount: <成交金额>.format("%.2f")
-              fee: <手续费>.number + <印花税>.number + <过户费>.number + <其他费>.number
-        - when: <股东账号> ~ "A"
-          vars:
-              security: SH<证券代码>.format("%06.0f")
-        - when: <成交金额> == "0"
-          vars:
-              amount: <成交数量>.number * <成交价格>.number
+      security: SH<证券代码>.format("%06.0f")
+  - when: <成交金额> == "0"
+    vars:
+      amount: <成交数量>.number * <成交价格>.number
+  legs:
+  - id: 买入
+    when: <操作> == "买"
     legs:
-        - id: 买入
-          when: <操作> == "买"
-          legs:
-              - { role: cash, amount: "-<var.amount>", currency: CNY }
-              - { role: position, amount: '<成交数量>.format("%.2f")', currency: <var.security>, cost: '<成交价格>.format("%.3f") CNY', price: "@@ <var.amount> CNY" }
-              - { role: cash, amount: "-<var.fee>", currency: CNY }
-              - { role: fee, amount: <var.fee>, currency: CNY }
-        - id: 卖出
-          when: <操作> == "卖"
-          legs:
-              - { role: position, amount: '-<成交数量>.format("%.2f")', currency: <var.security>, cost: "{}", price: '@ <成交价格>.format("%.3f") CNY' }
-              - { role: cash, amount: <var.amount>, currency: CNY }
-              - { role: cash, amount: "-<var.fee>", currency: CNY }
-              - { role: fee, amount: <var.fee>, currency: CNY }
-              - { role: pnl }
+    - role: cash
+      amount: '-<var.amount>'
+      currency: CNY
+    - role: position
+      amount: <成交数量>.format("%.2f")
+      currency: <var.security>
+      cost: <成交价格>.format("%.3f") CNY
+      price: '@@ <var.amount> CNY'
+    - role: cash
+      amount: '-<var.fee>'
+      currency: CNY
+    - role: fee
+      amount: <var.fee>
+      currency: CNY
+  - id: 卖出
+    when: <操作> == "卖"
+    legs:
+    - role: position
+      amount: '-<成交数量>.format("%.2f")'
+      currency: <var.security>
+      cost: '{}'
+      price: '@ <成交价格>.format("%.3f") CNY'
+    - role: cash
+      amount: <var.amount>
+      currency: CNY
+    - role: cash
+      amount: '-<var.fee>'
+      currency: CNY
+    - role: fee
+      amount: <var.fee>
+      currency: CNY
+    - role: pnl
+  timezone: Asia/Shanghai

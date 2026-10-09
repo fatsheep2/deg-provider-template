@@ -29,3 +29,5 @@ template:
       tokenSymbol: <代币符号>
       txHash: <交易哈希>
   direction: {}
+  timezone: Asia/Shanghai
+  dateFormat: 2006/1/2 15:04:05

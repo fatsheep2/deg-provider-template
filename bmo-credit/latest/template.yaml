@@ -21,3 +21,4 @@ template:
     currency: CAD
   direction:
     invert: true
+  timezone: America/Toronto

@@ -2,26 +2,29 @@ options:
   title: jd
   operatingCurrency: CNY
 template: jd
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts: {}
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
 templateRules:
-- id: 平台商户京鲜生
-  when: <商户名称> == "京东平台商户" && <交易说明> ~ "京鲜生" && <交易说明> !~ "退款-"
+- id: 平台商户取店名
+  when: <商户名称> == "京东平台商户" && <交易说明> !~ "退款" && <交易说明> =~ "[^ ]{1,6} .*"
   actions:
-    payee: 京鲜生
+    payee: <交易说明>.extract("^(\S+)\s")
     metadata:
-      source: 京鲜生
-- id: 平台商户JEEP
-  when: <商户名称> == "京东平台商户" && <交易说明> ~ "JEEP" && <交易说明> !~ "退款-"
+      source: <交易说明>.extract("^(\S+)\s")
+- id: 备注
+  when: <备注> != "" && <备注> != "/"
   actions:
-    payee: JEEP
-    metadata:
-      source: JEEP
+    note: <备注>
 - id: 京东冻结解冻忽略
   when: <收/支> == "不计收支" && (<交易说明> ~ "冻结-" || <交易说明> ~ "解冻-")
   actions:
     ignore: true
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 京东退款
   when: <收/支> == "不计收支" && <交易说明> ~ "退款-"

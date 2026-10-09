@@ -2,11 +2,15 @@ options:
   title: 建设银行账单转换
   operatingCurrency: CNY
 template: ccb
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:Bank:CN:CCB:Checking
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
 templateRules:
+- id: 建行无户名用账号
+  when: <对方户名> == ""
+  actions:
+    payee: <对方账号>
 - id: 备注
   actions:
     note: <摘要>
@@ -22,6 +26,11 @@ templateRules:
     metadata:
       income: <收入>
       type: 收入
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 建行收入来源
   when: <收入> != "" && <收入> != "0"

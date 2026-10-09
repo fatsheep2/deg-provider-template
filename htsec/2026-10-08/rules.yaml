@@ -1,27 +1,24 @@
 options:
-    title: 测试
-    operatingCurrency: CNY
-
+  title: 测试
+  operatingCurrency: CNY
 template: htsec
-
-# 角色绑定：模板只说每条腿是什么角色，账户在这里一次绑好。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
-    cash: Assets:Htsec:Cash
-    position: Assets:Htsec:Positions
-    fee: Expenses:Htsec:Commission
-    pnl: Income:Htsec:PnL
-
+  cash: Assets:Htsec:Cash
+  position: Assets:Htsec:Positions
+  fee: Expenses:Htsec:Commission
+  pnl: Income:Htsec:PnL
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-    - id: 忽略新增证券
-      when: <证券名称> == "新增证券"
-      actions:
-          ignore: true
-
-    - id: Rule1 兴业转债卖出
-      when: <证券名称> ~ "兴业转债" && narration ~ "卖"
-      actions:
-          accounts:
-              cash: Assets:Rule1:Cash
-              position: Assets:Rule1:Positions
-              fee: Expenses:Rule1:Commission
-              pnl: Income:Rule1:PnL
+- id: Rule1 兴业转债卖出
+  when: <证券名称> ~ "兴业转债" && narration ~ "卖"
+  actions:
+    accounts:
+      cash: Assets:Rule1:Cash
+      position: Assets:Rule1:Positions
+      fee: Expenses:Rule1:Commission
+      pnl: Income:Rule1:PnL

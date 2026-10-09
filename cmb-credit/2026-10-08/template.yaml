@@ -1,10 +1,20 @@
 schema: https://deg.dev/template-profile/v2
 id: cmb-credit
 name: CMB Credit
+shape:
+- capture:
+    pattern: (?P<billYear>(?:19|20)\d{2})年(?P<billMonth>0[1-9]|1[0-2])月
+    scanRows: 3
+- locateHeader:
+    anchor:
+    - 交易日
+    - 记账日
+    - 人民币金额
+    scanRows: 10
+- dropIf: <卡号末四位> == ""
 template:
   fileFormat: csv
   delimiter: ','
-  skipLeadingRows: 1
   sourceHeaders:
   - 交易日
   - 记账日
@@ -14,10 +24,22 @@ template:
   - 交易地金额
   defaultCurrency: CNY
   slots:
-    date: 2024/<记账日>
+    date: <var.year>/<var.md>
     payee: CMB
     narration: <交易摘要>
     amount: <人民币金额>.number
     currency: CNY
   direction:
     invert: true
+  timezone: Asia/Shanghai
+  vars:
+  - vars:
+      md: <交易日>
+      prevYear: <file.billYear> - 1
+      year: <file.billYear>
+  - when: <交易日> == ""
+    vars:
+      md: <记账日>
+  - when: <var.md>.extract("^(\d+)") > <file.billMonth>
+    vars:
+      year: <var.prevYear>.format("%.0f")

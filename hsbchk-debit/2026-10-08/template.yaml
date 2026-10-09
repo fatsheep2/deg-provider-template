@@ -23,3 +23,4 @@ template:
       balance: <Balance>.number <Balance currency>
       source: HSBC HK
   direction: {}
+  timezone: Asia/Hong_Kong

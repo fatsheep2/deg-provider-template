@@ -19,3 +19,5 @@ template:
   direction:
     outflowColumn: <amountOut>
     inflowColumn: <amountIn>
+  timezone: America/Toronto
+  dateFormat: 01/02/2006

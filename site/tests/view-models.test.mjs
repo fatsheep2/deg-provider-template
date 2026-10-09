@@ -152,7 +152,7 @@ test('mappingModel reads slots, direction, vars and legs', () => {
   assert.equal(m.legs[0].legs[1].role, 'pnl');
   assert.equal(m.shape.length, 2);
   assert.deepEqual(rolesOf(m), ['cash', 'pnl']);
-  assert.deepEqual(rolesOf(mappingModel({ template: { slots: { date: 'x' } } })), ['self']);
+  assert.deepEqual(rolesOf(mappingModel({ template: { slots: { date: 'x' } } })), ['self', 'other']);
   assert.equal(mappingModel({ template: { fileFormat: 'csv' } }).hasSlots, false);
 });
 

@@ -2,67 +2,42 @@ options:
   title: HSBC HK信用卡示例
   operatingCurrency: CNY
 template: hsbchk-credit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Liabilities:CreditCard:HSBC
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 美团支出
-  when: payee ~ "MEITUAN" && narration ~ "APPLEPAY MEITUAN" && <Credit / Debit> == DEBIT
+- id: 美团
+  when: payee ~ "MEITUAN" && narration ~ "APPLEPAY MEITUAN"
   actions:
-    to:
-      account: Expenses:Food:Delivery
-- id: 美团收入
-  when: payee ~ "MEITUAN" && narration ~ "APPLEPAY MEITUAN" && <Credit / Debit> == CREDIT
-  actions:
-    from:
-      account: Expenses:Food:Delivery
+    other: Expenses:Food:Delivery
 - id: 还款
   when: narration ~ "PAYMENT - THANK YOU"
   actions:
     from:
       account: Assets:Bank:HK:HSBC:Savings
-- id: 快餐支出
-  when: (payee ~ "KFC RESTAURANT" || payee ~ "MCDONALDS") && <Credit / Debit> == DEBIT
+- id: 快餐
+  when: (payee ~ "KFC RESTAURANT" || payee ~ "MCDONALDS")
   actions:
-    to:
-      account: Expenses:Food:FastFood
-- id: 快餐收入
-  when: (payee ~ "KFC RESTAURANT" || payee ~ "MCDONALDS") && <Credit / Debit> == CREDIT
+    other: Expenses:Food:FastFood
+- id: 便利店
+  when: payee ~ "7-ELEVEN"
   actions:
-    from:
-      account: Expenses:Food:FastFood
-- id: 便利店支出
-  when: payee ~ "7-ELEVEN" && <Credit / Debit> == DEBIT
+    other: Expenses:Groceries
+- id: 地铁
+  when: payee ~ "METRO"
   actions:
-    to:
-      account: Expenses:Groceries
-- id: 便利店收入
-  when: payee ~ "7-ELEVEN" && <Credit / Debit> == CREDIT
-  actions:
-    from:
-      account: Expenses:Groceries
-- id: 地铁支出
-  when: payee ~ "METRO" && <Credit / Debit> == DEBIT
-  actions:
-    to:
-      account: Expenses:Transport
-- id: 地铁收入
-  when: payee ~ "METRO" && <Credit / Debit> == CREDIT
-  actions:
-    from:
-      account: Expenses:Transport
+    other: Expenses:Transport
 - id: 退款
   when: narration ~ "RETURN"
   actions:
     from:
       account: Assets:Refund
-- id: 银联商户支出
-  when: payee ~ "UNIONPAY MERCHANT" && <Credit / Debit> == DEBIT
+- id: 银联商户
+  when: payee ~ "UNIONPAY MERCHANT"
   actions:
-    to:
-      account: Expenses:Shopping
-- id: 银联商户收入
-  when: payee ~ "UNIONPAY MERCHANT" && <Credit / Debit> == CREDIT
-  actions:
-    from:
-      account: Expenses:Shopping
+    other: Expenses:Shopping

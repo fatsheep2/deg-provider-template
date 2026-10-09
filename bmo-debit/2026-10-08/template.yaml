@@ -24,3 +24,5 @@ template:
     - DEBIT
     inflow:
     - CREDIT
+    default: outflow
+  timezone: America/Toronto

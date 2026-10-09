@@ -1,6 +1,11 @@
 schema: https://deg.dev/template-profile/v2
 id: icbc-credit
 name: ICBC Credit
+shape:
+- capture:
+    pattern: 卡别名[:：][\s\p{Zs}]*(?P<cardName>[^,"]*)
+    scanRows: 4
+- dropMatching: ^(合计金额|人民币合计)
 template:
   fileFormat: csv
   delimiter: ','
@@ -22,15 +27,18 @@ template:
   - 对方户名
   defaultCurrency: CNY
   slots:
-    date: <交易日期>
+    date: <记账日期>
     payee: <交易场所>
     currency: CNY
     metadata:
       balances: <余额>.number
+      cardName: <file.cardName>
       currency: <记账币种>
+      peerAccount: <对方户名>
       source: 中国工商银行
       txType: <摘要>
       type: ''
   direction:
     outflowColumn: <记账金额(支出)>
     inflowColumn: <记账金额(收入)>
+  timezone: Asia/Shanghai

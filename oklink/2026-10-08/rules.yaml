@@ -2,39 +2,32 @@ options:
   title: OKLink 代币账本
   operatingCurrency: CNY
 template: oklink
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
-accounts: {}
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
+accounts:
+  self: Assets:Crypto:Software:Ethereum:0x1429****7f855c
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 欧科云链发送
+- id: 我发出
   when: from == 0x1429****7f855c
   actions:
+    direction: outflow
     payee: <接收方>
     narration: <代币符号> Send
     metadata:
       direction: send
-    from:
-      account: Assets:Crypto:Software:Ethereum:0x1429****7f855c
-      amount: <数量>.format("%.8f")
-      currency: <代币符号>
-    to:
-      account: Expenses:FIXME
-      amount: <数量>.format("%.8f")
-      currency: <代币符号>
-- id: 欧科云链接收
+- id: 我收到
   when: to == 0x1429****7f855c
   actions:
+    direction: inflow
     payee: <发送方>
     narration: <代币符号> Receive
     metadata:
       direction: recv
-    from:
-      account: Income:Crypto:Transfer
-      amount: <数量>.format("%.8f")
-      currency: <代币符号>
-    to:
-      account: Assets:Crypto:Software:Ethereum:0x1429****7f855c
-      amount: <数量>.format("%.8f")
-      currency: <代币符号>
+    other: Income:Crypto:Transfer
 - id: USDT标签
   when: currency == USDT
   actions:
@@ -50,36 +43,33 @@ personalRules:
 - id: USDC发送账户
   when: currency == USDC && from == 0x1429****7f855c
   actions:
-    from:
-      account: Assets:Crypto:Ethereum:USDC
+    accounts:
+      self: Assets:Crypto:Ethereum:USDC
 - id: USDC接收账户
   when: currency == USDC && to == 0x1429****7f855c
   actions:
-    to:
-      account: Assets:Crypto:Ethereum:USDC
+    accounts:
+      self: Assets:Crypto:Ethereum:USDC
 - id: USDT指定收入对手方
   when: currency == USDT && from == 0xd854****c172b3 && to == 0x1429****7f855c
   actions:
     tags:
     - Receive
-    from:
-      account: Income:Crypto:Transfer
-    to:
-      account: Assets:Crypto:Ethereum:USDT
+    other: Income:Crypto:Transfer
+    accounts:
+      self: Assets:Crypto:Ethereum:USDT
 - id: USDT指定支出对手方
   when: currency == USDT && from == 0x1429****7f855c && to == 0x3ef4****f2768a
   actions:
     tags:
     - Send
     currency: CNY
-    from:
-      account: Assets:Crypto:Ethereum:USDT
-    to:
-      account: Expenses:Food:Meal
+    accounts:
+      self: Assets:Crypto:Ethereum:USDT
+    other: Expenses:Food:Meal
 - id: 小额空投
   when: from == 0x1429****7f855c && amount >= 1 && amount <= 10
   actions:
     tags:
     - SmallAirdrop
-    to:
-      account: Income:Crypto:Airdrop
+    other: Income:Crypto:Airdrop

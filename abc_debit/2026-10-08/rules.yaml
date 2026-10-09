@@ -2,7 +2,7 @@ options:
   title: abc_debit
   operatingCurrency: CNY
 template: abc_debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:ABC:DebitCard
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
@@ -12,57 +12,36 @@ templateRules:
   actions:
     payee: ABC Debit
 - id: 农行借记卡附言摘要
-  when: <交易附言> != ""
+  when: <交易附言> != "" && <交易摘要> != ""
   actions:
     narration: <交易摘要> - <交易附言>
+- id: 农行借记卡只有附言
+  when: <交易附言> != "" && <交易摘要> == ""
+  actions:
+    narration: <交易附言>
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 转存收入
-  when: narration ~ "转存" && <交易金额> >= 0
+- id: 转存
+  when: narration ~ "转存"
   actions:
-    from:
-      account: Equity:Transfers
-- id: 转存支出
-  when: narration ~ "转存" && <交易金额> < 0
+    other: Equity:Transfers
+- id: 财付通
+  when: narration ~ "财付通"
   actions:
-    to:
-      account: Equity:Transfers
-- id: 财付通收入
-  when: narration ~ "财付通" && <交易金额> >= 0
+    other: Expenses:Transport:Transit
+- id: 正常还款
+  when: narration ~ "正常还款"
   actions:
-    from:
-      account: Expenses:Transport:Transit
-- id: 财付通支出
-  when: narration ~ "财付通" && <交易金额> < 0
+    other: Liabilities:Loans:Personal
+- id: 结息
+  when: narration ~ "结息"
   actions:
-    to:
-      account: Expenses:Transport:Transit
-- id: 正常还款收入
-  when: narration ~ "正常还款" && <交易金额> >= 0
+    other: Income:Interest
+- id: 利息税
+  when: narration ~ "利息税"
   actions:
-    from:
-      account: Liabilities:Loans:Personal
-- id: 正常还款支出
-  when: narration ~ "正常还款" && <交易金额> < 0
-  actions:
-    to:
-      account: Liabilities:Loans:Personal
-- id: 结息收入
-  when: narration ~ "结息" && <交易金额> >= 0
-  actions:
-    from:
-      account: Income:Interest
-- id: 结息支出
-  when: narration ~ "结息" && <交易金额> < 0
-  actions:
-    to:
-      account: Income:Interest
-- id: 利息税收入
-  when: narration ~ "利息税" && <交易金额> >= 0
-  actions:
-    from:
-      account: Expenses:Tax
-- id: 利息税支出
-  when: narration ~ "利息税" && <交易金额> < 0
-  actions:
-    to:
-      account: Expenses:Tax
+    other: Expenses:Tax

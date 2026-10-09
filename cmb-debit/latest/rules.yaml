@@ -2,37 +2,24 @@ options:
   title: 测试
   operatingCurrency: CNY
 template: cmb-debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:DebitCard:CMB
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 电费支出
-  when: (payee ~ "电费" || payee ~ "网上国网" || payee ~ "国网") && <交易金额> < 0
+- id: 电费
+  when: (payee ~ "电费" || payee ~ "网上国网" || payee ~ "国网")
   actions:
-    to:
-      account: Expenses:Electricity
-- id: 电费收入
-  when: (payee ~ "电费" || payee ~ "网上国网" || payee ~ "国网") && <交易金额> >= 0
+    other: Expenses:Electricity
+- id: 中国移动
+  when: payee ~ "中国移动"
   actions:
-    from:
-      account: Expenses:Electricity
-- id: 中国移动支出
-  when: payee ~ "中国移动" && <交易金额> < 0
+    other: Expenses:Mobile
+- id: 保险赔付
+  when: payee ~ "太平洋健康保险股份有限公司" && narration ~ "汇入汇款"
   actions:
-    to:
-      account: Expenses:Mobile
-- id: 中国移动收入
-  when: payee ~ "中国移动" && <交易金额> >= 0
-  actions:
-    from:
-      account: Expenses:Mobile
-- id: 保险赔付收入
-  when: payee ~ "太平洋健康保险股份有限公司" && narration ~ "汇入汇款" && <交易金额> >= 0
-  actions:
-    from:
-      account: Income:Insurance
-- id: 保险赔付支出
-  when: payee ~ "太平洋健康保险股份有限公司" && narration ~ "汇入汇款" && <交易金额> < 0
-  actions:
-    to:
-      account: Income:Insurance
+    other: Income:Insurance

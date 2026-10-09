@@ -5,7 +5,7 @@
 
 const SLOT_FIELDS = ['date', 'payee', 'narration', 'amount', 'currency', 'flag', 'tags', 'links'];
 
-export const CORE_ROLES = ['self', 'from', 'to', 'cash', 'position', 'fee', 'pnl', 'gas', 'custody'];
+export const CORE_ROLES = ['self', 'other', 'from', 'to', 'cash', 'position', 'fee', 'pnl', 'gas', 'custody'];
 
 function asList(v) {
   if (v == null) return [];
@@ -74,7 +74,10 @@ export function accountsModel(rulesDoc) {
 export function rolesOf(model) {
   const roles = new Set();
   for (const b of model.legs) for (const l of b.legs) if (l.role) roles.add(l.role);
-  if (!roles.size) roles.add('self');
+  if (!roles.size) {
+    roles.add('self');
+    roles.add('other');
+  }
   return [...roles];
 }
 
@@ -125,6 +128,7 @@ export function roleExample(role) {
     case 'self': return 'Assets:Bank:MyBank:Checking';
     case 'from': return 'Assets:Bank:MyBank';
     case 'to': return 'Expenses:FIXME';
+    case 'other': return 'Expenses:Food';
     case 'cash': return 'Assets:Broker:Cash';
     case 'position': return 'Assets:Broker:Positions';
     case 'fee': return 'Expenses:Broker:Commission';

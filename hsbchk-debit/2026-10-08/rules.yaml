@@ -2,70 +2,39 @@ options:
   title: HSBC HK借记卡示例
   operatingCurrency: HKD
 template: hsbchk-debit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Assets:Bank:HK:HSBC:Savings
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
-- id: 取现收入
-  when: payee ~ "WITHDRAWAL" && <Billing amount> >= 0
+- id: 取现
+  when: payee ~ "WITHDRAWAL"
   actions:
-    from:
-      account: Assets:Cash
-- id: 取现支出
-  when: payee ~ "WITHDRAWAL" && <Billing amount> < 0
+    other: Assets:Cash
+- id: 工资
+  when: payee ~ "SALARY PAYMENT"
   actions:
-    to:
-      account: Assets:Cash
-- id: 工资收入
-  when: payee ~ "SALARY PAYMENT" && <Billing amount> >= 0
+    other: Income:Salary
+- id: 转入
+  when: payee ~ "TRANSFER FROM"
   actions:
-    from:
-      account: Income:Salary
-- id: 工资支出
-  when: payee ~ "SALARY PAYMENT" && <Billing amount> < 0
+    other: Income:Transfer
+- id: 账单缴费
+  when: payee ~ "BILL PAYMENT"
   actions:
-    to:
-      account: Income:Salary
-- id: 转入收入
-  when: payee ~ "TRANSFER FROM" && <Billing amount> >= 0
+    other: Expenses:Utilities
+- id: 超市
+  when: (payee ~ "POS PURCHASE" || payee ~ "SUPERMARKET")
   actions:
-    from:
-      account: Income:Transfer
-- id: 转入支出
-  when: payee ~ "TRANSFER FROM" && <Billing amount> < 0
+    other: Expenses:Groceries
+- id: 利息
+  when: payee ~ "INTEREST CREDIT"
   actions:
-    to:
-      account: Income:Transfer
-- id: 账单缴费收入
-  when: payee ~ "BILL PAYMENT" && <Billing amount> >= 0
-  actions:
-    from:
-      account: Expenses:Utilities
-- id: 账单缴费支出
-  when: payee ~ "BILL PAYMENT" && <Billing amount> < 0
-  actions:
-    to:
-      account: Expenses:Utilities
-- id: 超市收入
-  when: (payee ~ "POS PURCHASE" || payee ~ "SUPERMARKET") && <Billing amount> >= 0
-  actions:
-    from:
-      account: Expenses:Groceries
-- id: 超市支出
-  when: (payee ~ "POS PURCHASE" || payee ~ "SUPERMARKET") && <Billing amount> < 0
-  actions:
-    to:
-      account: Expenses:Groceries
-- id: 利息收入
-  when: payee ~ "INTEREST CREDIT" && <Billing amount> >= 0
-  actions:
-    from:
-      account: Income:Interest
-- id: 利息支出
-  when: payee ~ "INTEREST CREDIT" && <Billing amount> < 0
-  actions:
-    to:
-      account: Income:Interest
+    other: Income:Interest
 - id: 忽略TRIPLEZ
   when: payee ~ "TRIPLE Z"
   actions:

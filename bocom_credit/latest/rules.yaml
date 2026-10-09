@@ -2,7 +2,7 @@ options:
   title: bocom_credit
   operatingCurrency: CNY
 template: bocom_credit
-# 角色绑定：self 是这份账单自己的账户（支出时为 from，收入时为 to）；没绑的一侧由引擎补 FIXME。
+# 角色绑定：self 是这份账单自己的账户，other 是对手方（支出时记在 to，收入/退款时记在 from）。没绑的一侧由引擎补 FIXME。
 accounts:
   self: Liabilities:BOCOM:CreditCard
 # 模板规则只整理字段（对手方、摘要、币种、元数据），不写账户。
@@ -12,29 +12,22 @@ templateRules:
   actions:
     metadata:
       transactionAmount: <交易币种/金额>
+# 输出设置（可选）：每笔交易的默认写法和要保留的元数据；个人规则仍可逐笔覆盖。
+# output:
+#   narration: <列名>
+#   metadata:
+#     drop: [某个键]
 personalRules:
 - id: 信用卡还款
   when: narration ~ "信用卡还款"
   actions:
     from:
       account: Equity:Transfers
-- id: 美团收入
-  when: narration ~ "美团" && (narration ~ "退货" || narration ~ "信用卡还款" || narration ~ "红包还款" || narration ~ "刷卡金返还" || narration ~ "自动购汇还款")
+- id: 美团
+  when: narration ~ "美团"
   actions:
-    from:
-      account: Expenses:Food
-- id: 美团支出
-  when: narration ~ "美团" && (narration ~ "消费" || narration ~ "刷卡金扣回" || narration ~ "分期扣款" || narration ~ "自动购汇扣款")
+    other: Expenses:Food
+- id: 饿了么
+  when: narration ~ "饿了么"
   actions:
-    to:
-      account: Expenses:Food
-- id: 饿了么收入
-  when: narration ~ "饿了么" && (narration ~ "退货" || narration ~ "信用卡还款" || narration ~ "红包还款" || narration ~ "刷卡金返还" || narration ~ "自动购汇还款")
-  actions:
-    from:
-      account: Expenses:Food
-- id: 饿了么支出
-  when: narration ~ "饿了么" && (narration ~ "消费" || narration ~ "刷卡金扣回" || narration ~ "分期扣款" || narration ~ "自动购汇扣款")
-  actions:
-    to:
-      account: Expenses:Food
+    other: Expenses:Food
