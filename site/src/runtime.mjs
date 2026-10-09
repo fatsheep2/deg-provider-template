@@ -33,7 +33,8 @@ export function loadRuntime(assetUrl) {
     go.run(instance); // resolves only when the program exits; it never does
     const api = globalThis.degRuntimeImport;
     if (typeof api !== 'function') throw new Error('wasmInit');
-    return { import: (template, rules, name, bytes) => api(template, rules, name, bytes) };
+    // The runtime returns a Promise (older builds returned the result directly).
+    return { import: async (template, rules, name, bytes) => api(template, rules, name, bytes) };
   })();
   ready.catch(() => { ready = null; });
   return ready;

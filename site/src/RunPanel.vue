@@ -29,7 +29,7 @@ async function run(name, bytes) {
     state.value = 'loading';
     const api = await loadRuntime(props.assetUrl);
     state.value = 'running';
-    const out = api.import(props.template, props.rules, name, bytes);
+    const out = await api.import(props.template, props.rules, name, bytes);
     if (!out.ok) throw new Error(out.error || 'runtimeError');
     result.value = out;
     state.value = 'done';
