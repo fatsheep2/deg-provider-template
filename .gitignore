@@ -3,3 +3,5 @@ site/dist/
 site/public/provider-index.json
 site/public/providers/
 site/public/releases/
+site/public/deg-runtime.wasm
+site/public/wasm_exec.js

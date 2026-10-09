@@ -125,6 +125,7 @@ option "operating_currency" "CNY"
 	security_code: "511090"
 	security_name: "30年国债"
 	shareholder_code: "A114514114"
+	trade_id: ""
 	trade_time: "23:59:59"
 	Assets:Hxsec:Cash 150.00 CNY
 	Income:Hxsec:PnL -150.00 CNY

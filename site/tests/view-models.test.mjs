@@ -128,3 +128,58 @@ test('yaml highlighting marks keys', () => {
   assert.ok(lines[1].map((x) => x.k).includes('meta'));
   assert.equal(text(lines[1]), '  - id: 晚餐');
 });
+
+import { mappingModel, accountsModel, rolesOf, directionText } from '../src/mapping-view.mjs';
+
+test('mappingModel reads slots, direction, vars and legs', () => {
+  const doc = {
+    shape: [{ locateHeader: { anchor: ['成交日期'] } }, { dropIf: '<成交金额> == "0"' }],
+    template: {
+      slots: { date: '<成交日期>', amount: '<成交金额>.number', metadata: { code: '<证券代码>' } },
+      direction: { column: '<收/支>', outflow: ['支出', '/'], inflow: ['收入'], default: 'outflow' },
+      vars: [{ vars: { security: 'SZ<证券代码>' } }, { when: '<股东账号> ~ "A"', vars: { security: 'SH<证券代码>' } }],
+      legs: [{ id: '买入', when: '<操作> == "买"', legs: [{ role: 'cash', amount: '-<成交金额>', currency: 'CNY' }, { role: 'pnl' }] }],
+    },
+  };
+  const m = mappingModel(doc);
+  assert.equal(m.hasSlots, true);
+  assert.deepEqual(m.slots.map((s) => s.field), ['date', 'amount']);
+  assert.deepEqual(m.metadata, [{ key: 'code', expr: '<证券代码>' }]);
+  assert.equal(m.direction.kind, 'column');
+  assert.equal(m.direction.fallback, 'outflow');
+  assert.equal(m.vars.length, 2);
+  assert.equal(m.vars[1].when, '<股东账号> ~ "A"');
+  assert.equal(m.legs[0].legs[1].role, 'pnl');
+  assert.equal(m.shape.length, 2);
+  assert.deepEqual(rolesOf(m), ['cash', 'pnl']);
+  assert.deepEqual(rolesOf(mappingModel({ template: { slots: { date: 'x' } } })), ['self', 'other']);
+  assert.equal(mappingModel({ template: { fileFormat: 'csv' } }).hasSlots, false);
+});
+
+test('directionText covers the three forms', () => {
+  const t = (k) => translate('en', k);
+  assert.match(directionText({ kind: 'columns', outflow: '<支出>', inflow: '<收入>' }, t), /outflow from 支出/);
+  assert.match(directionText({ kind: 'column', column: '<收/支>', outflow: ['支出'], inflow: ['收入'], fallback: 'outflow' }, t), /otherwise outflow/);
+  assert.match(directionText({ kind: 'sign', invert: true }, t), /positive/);
+});
+
+test('accountsModel lists role bindings in order', () => {
+  assert.deepEqual(accountsModel({ accounts: { self: 'Assets:Bank', fee: 'Expenses:Fee' } }), [
+    { role: 'self', account: 'Assets:Bank' },
+    { role: 'fee', account: 'Expenses:Fee' },
+  ]);
+  assert.deepEqual(accountsModel({}), []);
+});
+
+import { exprTokens, roleExample } from '../src/mapping-view.mjs';
+
+test('exprTokens splits columns, vars, methods and text', () => {
+  assert.deepEqual(exprTokens('<操作>-<证券代码>.format("%06.0f")-<证券名称>'), [
+    { kind: 'column', text: '操作' }, { kind: 'text', text: '-' },
+    { kind: 'column', text: '证券代码' }, { kind: 'method', text: '.format("%06.0f")' }, { kind: 'text', text: '-' },
+    { kind: 'column', text: '证券名称' },
+  ]);
+  assert.deepEqual(exprTokens('-<var.amount>'), [{ kind: 'text', text: '-' }, { kind: 'var', text: 'amount' }]);
+  assert.deepEqual(exprTokens('CNY'), [{ kind: 'text', text: 'CNY' }]);
+  assert.equal(roleExample('self'), 'Assets:Bank:MyBank:Checking');
+});

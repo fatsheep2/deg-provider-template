@@ -80,3 +80,34 @@ test('actionsToYaml is the inverse used by the editor cards', () => {
   assert.equal(parse(actionsToYaml(rule)).to, 'Expenses:Food:Dinner');
   assert.equal(actionsToYaml({}), '{}\n');
 });
+
+import { readAccounts, editAccount } from '../src/rules-edit.mjs';
+
+test('accounts bind and unbind roles without touching the rest of the file', () => {
+  const src = '# keep me\ntemplate: abc_debit\naccounts:\n  self: Assets:ABC\npersonalRules: []\n';
+  const bound = editAccount(src, 'fee', 'Expenses:Fee');
+  assert.deepEqual(readAccounts(bound), { self: 'Assets:ABC', fee: 'Expenses:Fee' });
+  assert.match(bound, /# keep me/);
+  const unbound = editAccount(bound, 'self', '  ');
+  assert.deepEqual(readAccounts(unbound), { fee: 'Expenses:Fee' });
+  assert.deepEqual(readAccounts('personalRules: []\n'), {});
+  assert.deepEqual(readAccounts(editAccount('personalRules: []\n', 'self', 'Assets:X')), { self: 'Assets:X' });
+});
+
+import { readPreferences, writePreferences, upsertRuleById } from '../src/rules-edit.mjs';
+
+test('output preferences round-trip through the output block', () => {
+  const src = '# mine\naccounts: {self: Assets:A}\npersonalRules:\n  - id: mine\n    when: payee ~ x\n    actions: {to: Expenses:X}\n';
+  let out = writePreferences(src, { dropped: ['orderId', 'merchantId'], narration: '<商品>', payee: '' });
+  assert.deepEqual(readPreferences(out), { dropped: ['orderId', 'merchantId'], narration: '<商品>', payee: '' });
+  const doc = parse(out);
+  assert.deepEqual(doc.output, { narration: '<商品>', metadata: { drop: ['orderId', 'merchantId'] } });
+  assert.equal(doc.personalRules.length, 1, 'rules untouched');
+  assert.match(out, /# mine/);
+  out = writePreferences(out, { dropped: ['orderId'], narration: '', payee: 'Bank' });
+  assert.deepEqual(parse(out).output, { payee: 'Bank', metadata: { drop: ['orderId'] } });
+  out = writePreferences(out, { dropped: [], narration: '', payee: '' });
+  assert.equal(parse(out).output, undefined);
+  assert.deepEqual(readPreferences('personalRules: []\n'), { dropped: [], narration: '', payee: '' });
+  assert.equal(parse(upsertRuleById('personalRules: []\n', 'x', { actions: { ignore: true } })).personalRules[0].actions.ignore, true);
+});

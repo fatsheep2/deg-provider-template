@@ -2,12 +2,15 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import RulesEditor from './RulesEditor.vue';
 import RulesCards from './RulesCards.vue';
+import MappingCard from './MappingCard.vue';
+import RunPanel from './RunPanel.vue';
 import BillTable from './BillTable.vue';
 import CodeBlock from './CodeBlock.vue';
 import { parse, stringify } from 'yaml';
 import { detectLocale, translate } from './i18n.mjs';
 import { providerName, displayTag, names } from './presentation.mjs';
 import { selectRelease, parseRoute, knownIssueForRelease } from './catalog.mjs';
+import { mappingModel, accountsModel, rolesOf } from './mapping-view.mjs';
 import { buildBundleText, buildShareFiles, shareToMirato } from './share.mjs';
 const repo='https://github.com/deb-sig/deg-provider-template';
 const readSaved=(key)=>{try{return localStorage.getItem(key);}catch{return null;}};
@@ -20,7 +23,11 @@ const index=ref(null), issues=ref(null), catalogError=ref(''), route=ref(parseRo
 const query=ref(''), category=ref('all'), format=ref('all');
 const reqName=ref(''), reqFormat=ref('CSV'), reqHeaders=ref(''), reqSample=ref('');
 const resources=ref(null), resourceError=ref(''), notice=ref('');
-const assetUrl=(p)=>`${import.meta.env.BASE_URL}${p}`;
+// Resolve assets against the bundle's own location, not the document URL: hosts that
+// serve the page under a path without a trailing slash (or rewrite the HTML) would
+// otherwise send relative fetches to the wrong directory.
+const assetBase=(()=>{try{return new URL('../',import.meta.url).href;}catch{return import.meta.env.BASE_URL;}})();
+const assetUrl=(p)=>assetBase+p;
 const href=(p,v=p.latest)=>`#/template/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`;
 const buildIssue=(title,platform,fmt,headers,sample)=>repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent([
  '### '+t('issuePlatform'), platform||'', '',
@@ -41,6 +48,12 @@ const release=computed(()=>selection.value.release);
 const knownIssue=computed(()=>release.value?knownIssueForRelease(release.value,issues.value?.records):null);
 const command=computed(()=>{if(!release.value)return '';const id=provider.value.id; const reference=`${id}@${release.value.revision}`;return `double-entry-generator config init ${reference} -o ${id}-rules.yaml\ndouble-entry-generator import ${reference} --rules ${id}-rules.yaml ./your-statement.${release.value.meta.fileFormat.toLowerCase()}`;});
 const rulesDoc=computed(()=>{try{return parse(resources.value?.rules||'')||{};}catch{return {};}});
+const templateDoc=computed(()=>{try{return parse(resources.value?.template||'')||{};}catch{return {};}});
+const mapping=computed(()=>mappingModel(templateDoc.value));
+const accounts=computed(()=>accountsModel(rulesDoc.value));
+const templateRoles=computed(()=>rolesOf(mapping.value));
+const personalYaml=ref('');
+const sampleBill=computed(()=>{const b=release.value?.artifacts?.bills?.[0];return b?{publicPath:b.publicPath,name:b.path.split('/').pop()}:null;});
 const templateRules=computed(()=>Array.isArray(rulesDoc.value.templateRules)?rulesDoc.value.templateRules:[]);
 const templateRulesRaw=computed(()=>templateRules.value.length?stringify({templateRules:templateRules.value}):'');
 const downloads=computed(()=>{if(!release.value)return [];const a=release.value.artifacts;return [{...a.template,label:'template'},{...a.rules,label:'rules'},...a.bills.map(b=>({...b,label:'bill'})),...(a.expected?[{...a.expected,label:'expected'}]:[])];});
@@ -56,7 +69,8 @@ async function loadResources(){
   const isSheet=bill&&/\.xlsx?$/i.test(bill.path);
   const billSource=isText?bill:(isSheet?bill.preview:null);
   const utf8=new TextDecoder('utf-8',{fatal:true});
-  const [template,rules,expected,billBytes]=await Promise.all([fetchBytes(a.template),fetchBytes(a.rules),a.expected?fetchBytes(a.expected):null,billSource?fetchBytes(billSource):null]);
+  const soft=(x)=>x?fetchBytes(x).catch(()=>null):null;
+  const [template,rules,expected,billBytes]=await Promise.all([fetchBytes(a.template),fetchBytes(a.rules),soft(a.expected),soft(billSource)]);
   const billText=billBytes?(isSheet?utf8:new TextDecoder(r.meta.encoding||'utf-8',{fatal:true})).decode(billBytes):null;
   if(token!==generation)return;
   resources.value={template:utf8.decode(template),rules:utf8.decode(rules),expected:expected?utf8.decode(expected):null,bill:billText,billType:!bill?'noSample':(isText||(isSheet&&billSource))?'text':'excel',billConverted:!!(isSheet&&billSource)};
@@ -125,9 +139,11 @@ onUnmounted(()=>{controller?.abort();window.removeEventListener('hashchange',nav
 <div class="columns"><div>
 <section class="panel use-panel"><h2>{{t('use')}}</h2><p>{{t('useNote')}}</p><pre>{{command}}</pre><button @click="copy">{{t('copy')}}</button><button v-if="shareAvailable" data-testid="share-mirato" @click="shareMirato">{{t('shareToMirato')}}</button></section>
 <template v-if="resources">
-<RulesCards :title="t('templateRulesTitle')" :rules="templateRules" :raw="templateRulesRaw" :t="t" />
+<MappingCard v-if="mapping.hasSlots" :model="mapping" :accounts="accounts" :description="provider.description||''" :t="t" />
+<RulesCards v-if="templateRules.length || !mapping.hasSlots" :title="t('templateRulesTitle')" :rules="templateRules" :raw="templateRulesRaw" :t="t" />
 <details class="panel"><summary>{{t('source')}}</summary><h3>{{t('template')}}</h3><CodeBlock :text="resources.template" lang="text" /><h3>{{t('headers')}}</h3><CodeBlock :text="(release.meta.sourceHeaders||[]).join('\n')" lang="text" /></details>
-<RulesEditor :key="provider.id" :provider="provider" :starter="resources.rules" :t="t" />
+<RulesEditor :key="provider.id" :provider="provider" :starter="resources.rules" :roles="templateRoles" :metadata-keys="mapping.metadata.map(m=>m.key)" :slots="mapping.slots" :t="t" @change="personalYaml=$event" />
+<RunPanel v-if="mapping.hasSlots" :template="resources.template" :rules="personalYaml" :sample="sampleBill" :asset-url="assetUrl" :t="t" />
 </template>
 </div><aside><section class="panel"><label for="revision">{{t('revision')}}</label><select id="revision" data-testid="revision-select" :value="release.revision" @change="changeRevision"><option v-for="v in provider.versions" :key="v" :value="v">{{v}}</option></select><dl><dt>{{t('currency')}}</dt><dd>{{release.meta.defaultCurrency||t('unknown')}}</dd><dt>{{t('encoding')}}</dt><dd>{{release.meta.encoding||t('unknown')}}</dd><dt>{{t('schema')}}</dt><dd>{{release.meta.schema||t('unknown')}}</dd></dl><p class="muted">{{t('releaseNote')}}</p><div class="actions"><a v-for="a in downloads" :key="a.path" class="button" :href="assetUrl(a.publicPath)" download>{{t('download')}} · {{t(a.label)}}</a><a class="button" :href="assetUrl(release.manifestPath)" download>{{t('manifest')}}</a></div><small>{{t('starterNote')}}</small></section>
 <section class="panel"><h3>SHA-256</h3><p>{{t('hashNote')}}</p><dl v-for="a in downloads" :key="a.path"><dt>{{t(a.label)}} · {{a.bytes}} B</dt><dd><code>{{a.sha256}}</code></dd></dl></section><section class="panel"><h3>{{t('contribute')}}</h3><a :href="repo+'/tree/main/'+encodeURIComponent(provider.id)+'/'+encodeURIComponent(release.revision)" target="_blank" rel="noopener">{{t('repo')}} ↗</a><p><a href="#/contribute">{{t('contribute')}} →</a></p></section></aside></div>

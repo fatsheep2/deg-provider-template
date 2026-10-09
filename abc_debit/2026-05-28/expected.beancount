@@ -33,7 +33,9 @@ option "operating_currency" "CNY"
 2024-01-03 * "12341234123412341" "正常还款"
 	amount: "-12345.89"
 	balance: "1943.12"
+	channel: ""
 	logNumber: "111222333"
+	postscript: ""
 	source: "中国农业银行储蓄卡"
 	Liabilities:Loans:Personal 12345.89 CNY
 	Assets:ABC:DebitCard -12345.89 CNY
@@ -41,6 +43,7 @@ option "operating_currency" "CNY"
 2024-01-04 * "ABC Debit" "结息 - 个人活期结息"
 	amount: "+0.01"
 	balance: "123.35"
+	channel: ""
 	logNumber: "0000000000"
 	postscript: "个人活期结息"
 	source: "中国农业银行储蓄卡"
@@ -50,9 +53,10 @@ option "operating_currency" "CNY"
 2024-01-04 * "ABC Debit" "利息税 - 个人活期结息"
 	amount: "+0.00"
 	balance: "123.35"
+	channel: ""
 	logNumber: "0000000000"
 	postscript: "个人活期结息"
 	source: "中国农业银行储蓄卡"
 	Assets:ABC:DebitCard 0.00 CNY
-	Expenses:Tax -0.00 CNY
+	Expenses:Tax 0.00 CNY
 

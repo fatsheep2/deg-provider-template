@@ -10,7 +10,10 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      DEG_REF: main
+      # The engine that reads these templates. The fork's module path is the
+      # upstream one, so it is built from a clone rather than go install.
+      DEG_REPO: ${{ vars.DEG_REPO || 'fatsheep2/double-entry-generator' }}
+      DEG_REF: ${{ vars.DEG_REF || 'dev-v3' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -18,8 +21,11 @@ jobs:
         with:
           go-version: stable
 
-      - name: Install DEG
-        run: go install "github.com/deb-sig/double-entry-generator/v2@${DEG_REF}"
+      - name: Build DEG
+        run: |
+          git clone --depth 1 --branch "$DEG_REF" "https://github.com/$DEG_REPO" /tmp/deg
+          (cd /tmp/deg && go build -o "$HOME/deg" .)
+          echo "DEG_BIN=$HOME/deg" >> "$GITHUB_ENV"
 
       - name: Verify templates
         run: scripts/verify.sh

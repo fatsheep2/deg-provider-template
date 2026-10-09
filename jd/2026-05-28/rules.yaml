@@ -6,7 +6,7 @@ templateRules:
     - id: 京东基础交易
       actions:
           date: <交易时间>
-          amount: <金额>.number
+          amount: <金额>.extract("^([.0-9]+)").number
           payee: <商户名称>
           narration: <交易说明>
           currency: CNY
