@@ -8,6 +8,7 @@ import {
   buildBundleText,
   canShareFiles,
   shareToMirato,
+  miratoRevision,
 } from '../src/share.mjs';
 
 // 浏览器分享文件的白名单（MDN "Shareable file types"）。.yaml / text/yaml **不在**里面，
@@ -153,4 +154,18 @@ test('every share status has a message in all three locales', async () => {
       assert.ok(value.length > 0, `${locale}.${key} is empty`);
     }
   }
+});
+
+test('miratoRevision falls back to the newest legacy-format revision', () => {
+  const provider = {
+    versions: ['2026-10-08', '2026-05-23', '2026-01-01'],
+    releases: {
+      '2026-10-08': { meta: { slots: { date: '<d>' } } },
+      '2026-05-23': { meta: { columns: {} } },
+      '2026-01-01': { meta: {} },
+    },
+  };
+  assert.equal(miratoRevision(provider, '2026-10-08'), '2026-05-23');
+  assert.equal(miratoRevision(provider, '2026-01-01'), '2026-01-01');
+  assert.equal(miratoRevision({ versions: ['x'], releases: { x: { meta: { slots: {} } } } }, 'x'), null);
 });
