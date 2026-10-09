@@ -11,7 +11,7 @@ import { detectLocale, translate } from './i18n.mjs';
 import { providerName, displayTag, names } from './presentation.mjs';
 import { selectRelease, parseRoute, knownIssueForRelease } from './catalog.mjs';
 import { mappingModel, accountsModel, rolesOf } from './mapping-view.mjs';
-import { buildBundleText, buildShareFiles, shareToMirato } from './share.mjs';
+import { buildBundleText, buildShareFiles, miratoRevision, shareToMirato } from './share.mjs';
 const repo='https://github.com/deb-sig/deg-provider-template';
 const readSaved=(key)=>{try{return localStorage.getItem(key);}catch{return null;}};
 const locale=ref(detectLocale(readSaved('template-hub-locale'),navigator.languages));
@@ -74,8 +74,12 @@ async function loadResources(){
   const billText=billBytes?(isSheet?utf8:new TextDecoder(r.meta.encoding||'utf-8',{fatal:true})).decode(billBytes):null;
   if(token!==generation)return;
   resources.value={template:utf8.decode(template),rules:utf8.decode(rules),expected:expected?utf8.decode(expected):null,bill:billText,billType:!bill?'noSample':(isText||(isSheet&&billSource))?'text':'excel',billConverted:!!(isSheet&&billSource)};
-  shareFiles.value=buildShareFiles(resources.value,{id:r.id,revision:r.revision});
-  shareText.value=buildBundleText(resources.value,{id:r.id,revision:r.revision});
+  const shareRev=miratoRevision(provider.value,r.revision);
+  if(!shareRev)return;
+  let shareRes=resources.value;
+  if(shareRev!==r.revision){const s=provider.value.releases[shareRev].artifacts;const [st,sr]=await Promise.all([fetchBytes(s.template),fetchBytes(s.rules)]);if(token!==generation)return;shareRes={template:utf8.decode(st),rules:utf8.decode(sr)};}
+  shareFiles.value=buildShareFiles(shareRes,{id:r.id,revision:shareRev});
+  shareText.value=buildBundleText(shareRes,{id:r.id,revision:shareRev});
  }catch(e){if(token===generation && e.name!=='AbortError')resourceError.value='loadError';}
 }
 watch([route,index],loadResources);
@@ -97,7 +101,7 @@ const shareText=ref('');
 const shareAvailable=computed(()=>!!shareText.value&&typeof navigator?.share==='function');
 async function shareMirato(){
  const r=release.value;if(!r||!shareText.value)return;
- const status=await shareToMirato(navigator,{files:shareFiles.value,text:shareText.value},`${provider.value.id}@${r.revision}`);
+ const status=await shareToMirato(navigator,{files:shareFiles.value,text:shareText.value},`${provider.value.id}@${miratoRevision(provider.value,r.revision)}`);
  // 成功与用户取消都不出提示：分享面板本身就是反馈。只在真的失败时给一行。
  notice.value=(status==='error'||status==='blocked')?'shareError':'';
 }
