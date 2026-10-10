@@ -14,7 +14,7 @@ templates:
       - "2026-05-23"
     path: alipay/latest/template.yaml
     starterRules: alipay/latest/rules.yaml
-    description: 支付宝 CSV 账单模板。 import alipay 使用 latest；历史格式使用 alipay@YYYY-MM-DD。
+    description: 支付宝 CSV 账单模板。 import alipay 使用 latest；历史格式使用 alipay@YYYY-MM-DD。退款和原交易各记一笔、合计为零，不会像内置 alipay provider 那样成对移除。
 
   - id: wechat
     name: 微信支付账单
