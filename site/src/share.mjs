@@ -101,15 +101,3 @@ export async function shareToMirato(nav, payload, title) {
   if (!text) return 'unsupported';
   return attempt({ text, title });
 }
-
-/**
- * 分享给 Mirato 时用哪个版本。Mirato 还在用自己的解析器，只认旧格式模板
- * （template 里没有 slots）；新格式要等它嵌入 DEG 引擎（mirato#431）。
- * 当前版本是旧格式就用当前版本，否则取最新的旧格式版本；都没有返回 null。
- */
-export function miratoRevision(provider, revision) {
-  const releases = provider?.releases || {};
-  const legacy = (rev) => !!releases[rev] && !releases[rev].meta?.slots;
-  if (legacy(revision)) return revision;
-  return (provider?.versions || []).find(legacy) ?? null;
-}
