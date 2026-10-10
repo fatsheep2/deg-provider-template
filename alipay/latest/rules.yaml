@@ -15,6 +15,11 @@ personalRules:
   when: <交易状态> == 退款成功 && <交易订单号> ~ _
   actions:
     ignore: true
+# 退款在支付宝里记作「不计收支」，钱其实是退回来的：按收入方向记（不绑账户，谁用这个模板都适用）
+- id: 退款记为收入
+  when: (<交易分类> == 退款 || <交易状态> == 退款成功) && <收/支> == 不计收支
+  actions:
+    direction: inflow
 - id: 通用收入
   when: <收/支> == 收入
   actions:
